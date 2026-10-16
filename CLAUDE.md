@@ -1,0 +1,38 @@
+# Notes for Claude sessions
+
+Zepp OS watch faces for the Amazfit Balance 3 (480×480 round). Sextant is the first face. The canonical guide is `docs/development.md`, so read it before changing anything. This file is the short version of what a new session needs.
+
+## How we work
+
+- The owner commits and pushes. Sessions usually have read-only GitHub access, so deliver the whole repo as a zip using the command in `docs/development.md` → "Packaging for delivery". Commit locally first, so the zip carries history-ready changes.
+- Never bump a face's `app.json` version or date its changelog without being asked. A version bump on `main` publishes a release. Record changes under `## [Unreleased]` in `faces/<face>/CHANGELOG.md`.
+- Each push to `main` publishes a DEV test build at https://raetha.github.io/zepp-watch-faces/dev/, and the owner tests it on the watch.
+- Licences: `lib/` and `tools/` are MIT. `faces/<face>/` is CC BY-NC-SA 4.0. Fonts are OFL. Face artwork is original, so never copy other faces.
+
+## Validate on the real firmware, not just the harness
+
+- `npm test` and `npm run previews` are the fast offline loop: a stubbed runtime plus approximate renders. Use them for prototyping.
+- Use the emulator for validation and screenshots. It runs the real Zepp OS firmware (Balance 2 image) in QEMU, headless.
+- First-time setup in a fresh container (about 5 minutes, about 240 MB download):
+
+  ```bash
+  apt-get install -y libvte-2.91-0 libaio1t64 xvfb xdotool
+  pip install --break-system-packages -r tools/requirements.txt
+  npm install && npm install -g @zeppos/zeus-cli@1.9.3
+  node tools/emu/emu.mjs setup
+  node tools/emu/emu.mjs start && node tools/emu/emu.mjs enable-aod && node tools/emu/emu.mjs save-base
+  ```
+
+- Network allowlist needed: `*.zepp.com` and `*.huami.com`. That covers Zeus builds, `upload-cdn.zepp.com` (emulator and firmware) and `upload-cdn.huami.com` (device list). Node's `fetch` ignores the proxy, so the tools download with `curl`.
+- Loop: `node tools/emu/emu.mjs start`, then `install <face>`, then `set k=v …`, then `shot out.png`. Look at the PNG.
+- `npm run screenshots -- <face>` retakes the README screenshots (about 7 minutes) from `faces/<face>/emu-shots.json`.
+- The emulated watch has quirks (buttons, scrolling, screen timeout, settings applying at the minute tick). They're documented in `docs/development.md` → "Testing on the emulator", so read that before scripting new interactions.
+
+## Hard-won facts (details in docs/development.md)
+
+- A `.zab` holds one `.zpk` per screen and chip. `tools/extract_zpk.py` must pick by device ID (Balance 3 = 11141376), not take the first one.
+- The emulator can't decode `zeus build`'s compressed images. `tools/emu/prepare.py` swaps the PNGs back in.
+- API level 1 face code can't read the current weather. Use `IMG_LEVEL` bound to `WEATHER_CURRENT`.
+- Text boxes must sit on whole pixels. Arc `radius` is the centre of the stroke.
+- Arc angles are truncated to whole degrees, and arcs under 1° don't draw. Ticks use `geometry.tick_arc()`.
+- Edit mode shows only `ONLY_EDIT` widgets and the edit groups, in creation order.

@@ -1,0 +1,188 @@
+name: Build and publish
+
+# Every push and pull request: changelog check, offline harness, Zeus build of every face.
+# Push to main: any face whose app.json version has no `<face>-v<version>` tag yet is
+# released (tag + GitHub release with that version's changelog section), then the
+# install site is rebuilt from the latest release of every face.
+# Every push to main (and manual runs) also builds a "DEV" test build of every face
+# (own app ID, installs next to the release) and publishes it on the unlisted page
+# https://raetha.github.io/zepp-watch-faces/dev/ with scannable QR codes.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:      # manual run: rebuild the install site from existing releases
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_OPTIONS: --no-deprecation
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    outputs:
+      releases: ${{ steps.plan.outputs.releases }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0          # tags are needed to know what is already released
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install tooling
+        run: |
+          sudo apt-get update && sudo apt-get install -y libcairo2
+          pip install -r tools/requirements.txt
+          npm ci
+          npm install -g @zeppos/zeus-cli@1.9.3
+
+      - name: Check changelogs and plan releases
+        id: plan
+        run: python3 tools/release_plan.py --github
+
+      - name: Run the offline harness (every face, every scenario)
+        run: npm test
+
+      - name: Build every face with Zeus
+        run: |
+          set -e
+          for dir in faces/*/; do
+            face=$(basename "$dir")
+            [ -f "$dir/app.json" ] || continue
+            version=$(python3 -c "import json;print(json.load(open('$dir/app.json'))['app']['version']['name'])")
+            echo "::group::$face $version"
+            (cd "$dir" && zeus build)
+            mkdir -p "out/$face"
+            python3 tools/extract_zpk.py "$dir/dist" "out/$face/$face-$version.zpk"
+            cp "$dir"/dist/*.zab "out/$face/$face-$version.zab"
+            echo "::endgroup::"
+          done
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: watch-faces
+          path: out/
+
+      - name: Build DEV test builds of every face
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          set -e
+          short=$(git rev-parse --short HEAD)
+          for dir in faces/*/; do
+            face=$(basename "$dir")
+            [ -f "$dir/app.json" ] || continue
+            case "$face" in *-dev) continue;; esac
+            echo "::group::$face DEV"
+            python3 tools/make_dev_variant.py "$face" "$GITHUB_RUN_NUMBER" "$short"
+            (cd "faces/$face-dev" && zeus build)
+            mkdir -p "out-dev/$face"
+            python3 tools/extract_zpk.py "faces/$face-dev/dist" "out-dev/$face/$face.zpk"
+            echo "::endgroup::"
+          done
+
+      - uses: actions/upload-artifact@v7
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        with:
+          name: watch-faces-dev
+          path: out-dev/
+
+  release:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.build.outputs.releases != '[]'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: watch-faces
+          path: out
+
+      - name: Create a GitHub release per changed face
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASES: ${{ needs.build.outputs.releases }}
+        run: |
+          set -e
+          echo "$RELEASES" | python3 -c "import json,sys; [print(r['face'], r['version'], r['tag'], r['title'], sep='\t') for r in json.load(sys.stdin)]" |
+          while IFS=$'\t' read -r face version tag title; do
+            python3 tools/release_notes.py "$face" "$version" > notes.md
+            gh release create "$tag" --target "$GITHUB_SHA" --title "$title" --notes-file notes.md \
+              "out/$face/$face-$version.zpk" "out/$face/$face-$version.zab"
+          done
+
+  pages:
+    needs: [build, release]
+    if: >-
+      always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' &&
+      needs.build.result == 'success' &&
+      (needs.release.result == 'success' || needs.release.result == 'skipped')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Collect the latest release of every face
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          tags=$(gh release list --limit 200 --json tagName --jq '.[].tagName')
+          for dir in faces/*/; do
+            face=$(basename "$dir")
+            tag=$(echo "$tags" | grep -E "^$face-v[0-9]" | sed "s/^$face-v//" | sort -V | tail -1)
+            [ -n "$tag" ] || { echo "$face: no release yet"; continue; }
+            mkdir -p "site/$face"
+            gh release download "$face-v$tag" --pattern "*.zpk" --dir "site/$face"
+            mv "site/$face/$face-$tag.zpk" "site/$face/$face.zpk"
+            echo "$tag" > "site/$face/version.txt"
+            echo "$face: publishing $tag"
+          done
+          python3 tools/build_site.py site
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: watch-faces-dev
+          path: site/dev
+
+      - name: Add the unlisted test-build page
+        run: |
+          pip install qrcode pillow
+          python3 tools/dev_site.py site "$(git rev-parse --short HEAD)" "$GITHUB_RUN_NUMBER"
+          {
+            echo "### Test builds (run $GITHUB_RUN_NUMBER)"
+            echo ""
+            echo "Scan from: https://raetha.github.io/zepp-watch-faces/dev/"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - id: deployment
+        uses: actions/deploy-pages@v5

@@ -1,0 +1,22 @@
+# Changelog: Sextant
+
+All notable changes to the Sextant watch face. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
+[Semantic Versioning](https://semver.org/). The version here must match
+`version.name` in `app.json`; bumping it is what publishes a release.
+
+## [Unreleased]
+
+## [1.0.0] - 2026-10-16
+
+### Added
+- First release for the Amazfit Balance 3 (480×480 round).
+- A large brass time on a navy band, with the current weather condition under it and a row of status icons above it (Bluetooth, Do Not Disturb, alarm, screen lock). Each icon always shows something: a dim outline when off, lit when on, and Bluetooth red-slashed when disconnected.
+- The date on the left of the band and the battery on the right. The battery icon turns orange at 40% and red at 20%.
+- Six editable complications, each with a tick gauge on the bezel. The top-middle one defaults to weather (current-condition icon and temperature).
+  - Choices: steps, heart rate, distance (km or mi), calories, floors, PAI, stand, fat burning, blood oxygen, stress, UV index, humidity, air quality, next sunrise or sunset, and weather.
+  - Goal-based metrics light their gauge's ticks. The top and bottom gauges have a marker at the halfway point that lights up too.
+- Automatic night mode, deep red on pure black between sunset and sunrise. It can be switched off in edit mode.
+- Mono theme for colour-blind users, selectable in edit mode.
+- Always-on display with outline digits, date and battery.
+- Install by QR code from the Zepp app's developer mode.

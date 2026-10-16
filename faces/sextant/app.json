@@ -1,0 +1,52 @@
+{
+  "configVersion": "v3",
+  "app": {
+    "appId": 8613207,
+    "appName": "Sextant",
+    "appType": "watchface",
+    "version": {
+      "code": 1,
+      "name": "1.0.0"
+    },
+    "icon": "icon.png",
+    "vender": "raetha",
+    "cover": [
+      "cover.png"
+    ],
+    "description": "Sextant: a nautical, data-rich watch face with five editable complications, automatic red night mode and a mono theme. Source: https://github.com/raetha/zepp-watch-faces"
+  },
+  "runtime": {
+    "apiVersion": {
+      "compatible": "1.0.0",
+      "target": "1.0.1",
+      "minVersion": "1.0.0"
+    }
+  },
+  "permissions": [],
+  "targets": {
+    "common": {
+      "module": {
+        "watchface": {
+          "path": "watchface/index",
+          "main": 1,
+          "editable": 1,
+          "lockscreen": 1,
+          "photoscreen": 0
+        }
+      },
+      "platforms": [
+        {
+          "st": "r"
+        }
+      ],
+      "designWidth": 480
+    }
+  },
+  "i18n": {
+    "en-US": {
+      "appName": "Sextant"
+    }
+  },
+  "defaultLanguage": "en-US",
+  "debug": false
+}
