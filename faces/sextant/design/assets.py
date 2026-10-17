@@ -143,28 +143,41 @@ def make_backgrounds():
 
 
 # ============================================================================= time digits
+def TF():
+    """The time-digit font for this build."""
+    return F.TEXT_FONT if K.TIME_FONT_STYLE == "condensed" else F.TIME_FONT
+
+
 def solve_time_px():
-    """Largest time size whose widest value keeps TIME_SIDE_GAP to each separator."""
+    """Largest time size whose widest value keeps TIME_SIDE_GAP to each separator (and, when
+    the time is alone in the band, TIME_MIN_VGAP to the band edges)."""
+    def fits_height(px):
+        if not K.SECTION_LAYOUT:
+            return True
+        ex = [F.ink_extent(TF(), px, ch) for ch in "0123456789"]
+        ink = max(e[3] for e in ex) - min(e[1] for e in ex)
+        return ink <= (K.BAND_IN[1] - K.BAND_IN[0]) - 2 * K.TIME_MIN_VGAP
+
     def gap(px):
-        f = F.pil_font(str(F.TIME_FONT), px, S)
+        f = F.pil_font(str(TF()), px, S)
         adv = f.getlength("0", features=["tnum"]) / S
-        ex = [F.ink_extent(F.TIME_FONT, px, ch) for ch in "0123456789"]
+        ex = [F.ink_extent(TF(), px, ch) for ch in "0123456789"]
         colon = round(px * 22 / 124, 1)
         worst = 4 * adv + colon - min(e[0] for e in ex) - (adv - max(e[2] for e in ex))
         return (K.SEP_X[1] - 1 - (K.SEP_X[0] + 1) - worst) / 2
-    lo, hi = 60, 160
+    lo, hi = 60, 200
     while hi - lo > 1:
         mid = (lo + hi) // 2
-        lo, hi = (mid, hi) if gap(mid) >= K.TIME_SIDE_GAP else (lo, mid)
+        lo, hi = (mid, hi) if gap(mid) >= K.TIME_SIDE_GAP and fits_height(mid) else (lo, mid)
     return lo
 
 
 def time_metrics():
-    f = F.pil_font(str(F.TIME_FONT), K.TIME_PX, S)
+    f = F.pil_font(str(TF()), K.TIME_PX, S)
     adv = f.getlength("0", features=["tnum"]) / S
     tops, bots, lefts, rights = [], [], [], []
     for ch in "0123456789":
-        x0, t, x1, b = F.ink_extent(F.TIME_FONT, K.TIME_PX, ch)
+        x0, t, x1, b = F.ink_extent(TF(), K.TIME_PX, ch)
         tops.append(t); bots.append(b); lefts.append(x0); rights.append(x1)
     return dict(adv=adv, top=min(tops), bot=max(bots), lsb_min=min(lefts), right_max=max(rights),
                 colon_w=round(K.TIME_PX * 22 / 124, 1))
@@ -176,7 +189,7 @@ def make_time_digits():
     cell_w = int(math.ceil(tm["adv"]))
     cell_h = int(math.ceil(tm["bot"] - tm["top"])) + 2 * pad
     base_y = -tm["top"] + pad                       # baseline inside the cell
-    f = F.pil_font(str(F.TIME_FONT), K.TIME_PX, S)
+    f = F.pil_font(str(TF()), K.TIME_PX, S)
     styles = {
         "color": K.THEMES["color"]["time"],
         "color_white": K.THEMES["color"]["time_alt_white"],
@@ -279,7 +292,7 @@ def make_icons():
             img = retint(svg_to_image(svg, K.GLANCE_SIZE), theme, K.THEMES[theme].get("metric"))
             # the active icon covers the always-drawn off icon, so it sits on a disc of the
             # band colour at its position (the disc then doesn't show)
-            disc = band_colour_at(theme, glance_x(name))
+            disc = (0, 0, 0) if K.SECTION_LAYOUT else band_colour_at(theme, glance_x(name))
             backed = Image.new("RGBA", img.size, (0, 0, 0, 0))
             ImageDraw.Draw(backed).ellipse([0, 0, img.width - 1, img.height - 1], fill=disc + (255,))
             backed.alpha_composite(img)
@@ -402,6 +415,35 @@ def build_layout(tm, bg_paths):
         (K.W - side_x, K.W - top_icon_cy, K.W - top_value_cy),       # BR
         (K.C, K.W - bm_icon_cy, K.W - bm_value_cy),                  # TM (mirrors BM: icon nearest the band)
     ]
+    section = None
+    if K.SECTION_LAYOUT:
+        # status-icon row hugging one side of the band; the weather section gets three rows:
+        # icon (nearest the band), temperature, condition text (outermost)
+        gs, sg = K.GLANCE_SIZE, K.SECTION_GAP
+        dh22_ = cap_h(K.DESC_PX)
+        marker_tip = K.C - (K.RING_R - 13)            # top marker tip y; bottom mirrors
+        def three_rows_down(lo, hi):                   # top section: desc, value, icon (towards band)
+            g = (hi - lo - dh22_ - vh - K.ICON_PX) / 4
+            d = lo + g + dh22_ / 2
+            v = lo + 2 * g + dh22_ + vh / 2
+            i = lo + 3 * g + dh22_ + vh + K.ICON_PX / 2
+            return d, v, i
+        if K.SECTION_LAYOUT == "glances_bottom":
+            row_cy = K.BAND_IN[1] + sg + gs / 2
+            lo, hi = row_cy + gs / 2, bm_hi
+            cy = (lo + hi) / 2
+            centres[3] = (K.C, cy - block / 2 + K.ICON_PX / 2, cy + block / 2 - vh / 2)
+            d, v, i = three_rows_down(marker_tip, K.BAND_IN[0])
+            centres[5] = (K.C, i, v)
+            section = dict(row_cy=row_cy, desc_cy=d)
+        else:  # glances_top
+            row_cy = K.BAND_IN[0] - sg - gs / 2
+            lo, hi = marker_tip, row_cy - gs / 2
+            cy = (lo + hi) / 2
+            centres[5] = (K.C, cy + block / 2 - K.ICON_PX / 2, cy - block / 2 + vh / 2)
+            d, v, i = three_rows_down(marker_tip, K.BAND_IN[0])
+            centres[3] = (K.C, K.W - i, K.W - v)
+            section = dict(row_cy=row_cy, desc_cy=K.W - d)
     asc, desc = F.vmetrics(str(F.TEXT_FONT))
     for cx, icy, vcy in centres:
         vbox = text_box(K.VALUE_PX, cx, vcy, 132)
@@ -424,15 +466,16 @@ def build_layout(tm, bg_paths):
     L["char_widths"] = dict(value=char_widths(K.VALUE_PX), unit=char_widths(K.UNIT_PX), unit_gap=3)
 
     # ---------------------------------------------------------------- date stack (left of the time)
-    ch21, dh42 = cap_h(K.DATE_SMALL_PX), digit_h(K.DATE_DAY_PX)
-    gap1, gap2 = 11.1, 10.1                       # from the approved renders
+    small = K.DATE_DAY_PX if K.DATE_LARGE else K.DATE_SMALL_PX
+    ch21, dh42 = cap_h(small), digit_h(K.DATE_DAY_PX)
+    gap1, gap2 = (8, 8) if K.DATE_LARGE else (11.1, 10.1)
     stack_h = ch21 + gap1 + dh42 + gap2 + ch21
 
     def date_lines(cx, top):
         return dict(
-            dow=text_box(K.DATE_SMALL_PX, cx, top + ch21 / 2, 90, "HEOTX"),
-            day=text_box(K.DATE_DAY_PX, cx, top + ch21 + gap1 + dh42 / 2, 90),
-            month=text_box(K.DATE_SMALL_PX, cx, top + ch21 + gap1 + dh42 + gap2 + ch21 / 2, 90, "HEOTX"),
+            dow=text_box(small, cx, top + ch21 / 2, 100, "HEOTX"),
+            day=text_box(K.DATE_DAY_PX, cx, top + ch21 + gap1 + dh42 / 2, 100),
+            month=text_box(small, cx, top + ch21 + gap1 + dh42 + gap2 + ch21 / 2, 100, "HEOTX"),
         )
     side_l = K.SEP_X[0] / 2
     side_r = (K.SEP_X[1] + K.W) / 2
@@ -456,7 +499,12 @@ def build_layout(tm, bg_paths):
     worst_w = total_adv - tm["lsb_min"] - (tm["adv"] - tm["right_max"])
     gh = (K.SEP_X[1] - 1 - (K.SEP_X[0] + 1) - worst_w) / 2
     gs = K.GLANCE_SIZE
-    if K.GLANCE_MODE == "row":
+    if section:
+        # the time is alone in the band, centred
+        gv = (K.BAND_IN[1] - K.BAND_IN[0] - th) / 2
+        time_cy = K.MID
+        desc_cy, row_cy = section["desc_cy"], section["row_cy"]
+    elif K.GLANCE_MODE == "row":
         # status-icon row, time and condition stacked in the band with four equal gaps
         gv = (K.BAND_IN[1] - K.BAND_IN[0] - gs - th - dh22) / 4
         row_cy = K.BAND_IN[0] + gv + gs / 2

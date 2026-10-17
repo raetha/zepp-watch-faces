@@ -55,6 +55,16 @@ TIME_SIDE_GAP = 12                        # time size is solved so its widest va
 # Layout: date left of the time, six complications (top-middle defaults to weather).
 # The earlier pre-release layout (date top-middle, weather in the band, compass scale)
 # is kept on the git branch archive/previous-layout.
+# ---- mock-up switches (2026-10-17 review); defaults reproduce the 1.0.0 design
+TIME_FONT_STYLE = "regular"               # "regular" (Roboto) or "condensed" (Roboto Condensed)
+DATE_LARGE = False                        # weekday and month at the day's size
+SECTION_LAYOUT = None                     # None: status icons + condition in the band
+                                          # "glances_bottom": icons under the band, condition text
+                                          #   as the outer row of the top (weather) section
+                                          # "glances_top": icons over the band, weather + condition
+                                          #   in the bottom section
+SECTION_GAP = 10                          # band edge -> status-icon row in the section layouts
+TIME_MIN_VGAP = 16                        # time alone in the band: least gap to the band edges
 GLANCE_MODE = "row"                       # "row": status icons in a row above the time
                                           # "split": two each side of the condition text
 GLANCE_ROW_GAP = 14                       # row mode: gap between icons
@@ -161,3 +171,15 @@ WEATHER = [
     ("shower", "SHOWERS"),                # 27
     ("clear_night", "CLEAR"),             # 28
 ]
+
+
+# ----------------------------------------------------------------------------- overrides
+# SEXTANT_OVERRIDES='{"TIME_FONT_STYLE": "condensed"}' python3 design/generate.py
+# builds a variant without editing this file (used for side-by-side mock-ups).
+import json as _json
+import os as _os
+for _k, _v in _json.loads(_os.environ.get("SEXTANT_OVERRIDES", "{}")).items():
+    if _k not in globals():
+        raise KeyError(f"unknown override {_k}")
+    globals()[_k] = _v
+
