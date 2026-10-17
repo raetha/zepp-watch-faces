@@ -267,6 +267,18 @@ def band_colour_at(theme, x):
 
 
 
+def centred(img, size):
+    """The icon's drawing centred in a size x size box. Icon art doesn't always sit in the
+    middle of its canvas, which made the icon-to-value gaps look uneven."""
+    bb = img.getchannel("A").getbbox()
+    out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    if not bb:
+        return out
+    art = img.crop(bb)
+    out.alpha_composite(art, ((size - art.width) // 2, (size - art.height) // 2))
+    return out
+
+
 def metric_rgb(theme, metric):
     if theme == "color":
         return K.hexrgb(K.METRICS[metric][1])
@@ -279,12 +291,12 @@ def make_icons():
             base = metric if metric in K.METRICS else "sun"
             rgb = metric_rgb(theme, base)
             svg = METRIC_SVG[metric]("#%02x%02x%02x" % rgb)
-            save(svg_to_image(svg, K.ICON_PX), f"icons/{theme}/{metric}.png")
+            save(centred(svg_to_image(svg, K.ICON_PX), K.ICON_PX), f"icons/{theme}/{metric}.png")
         for i, (kind, _) in enumerate(K.WEATHER):
             img = retint(svg_to_image(weather_svg(kind), K.WEATHER_ICON_PX), theme, K.THEMES[theme].get("metric"))
             save(img, f"weather/{theme}/{i}.png")
             small = retint(svg_to_image(weather_svg(kind), K.ICON_PX), theme, K.THEMES[theme].get("metric"))
-            save(small, f"icons/{theme}/weather_{i}.png")
+            save(centred(small, K.ICON_PX), f"icons/{theme}/weather_{i}.png")
         for level, hx in K.BATTERY_COLORS.items():
             rgb = K.hexrgb(hx) if theme == "color" else K.THEMES[theme]["metric"]
             save(svg_to_image(BATTERY_SVG("#%02x%02x%02x" % rgb), K.BATTERY_ICON_PX), f"battery/{theme}/{level}.png")
@@ -409,16 +421,19 @@ def build_layout(tm, bg_paths):
     bm_hi = K.C + K.RING_R - K.TICK_MAJOR
     bm_cy = (bm_lo + bm_hi) / 2
     block = K.ICON_PX + K.ICON_GAP + vh
+    # VALUE_BOX_DESCENDER: a value's box runs from the digits' top to a comma's bottom, so a
+    # value above its icon keeps the full gap even with a thousands separator
+    dsc = F.ink_extent(F.TEXT_FONT, K.VALUE_PX, ",")[3] if K.VALUE_BOX_DESCENDER else 0
     bm_icon_cy = bm_cy - block / 2 + K.ICON_PX / 2
     bm_value_cy = bm_cy + block / 2 - vh / 2
     slots = []
     centres = [
         (side_x, top_icon_cy, top_value_cy),                         # TL
         (K.W - side_x, top_icon_cy, top_value_cy),                   # TR
-        (side_x, K.W - top_icon_cy, K.W - top_value_cy),             # BL
+        (side_x, K.W - top_icon_cy + dsc, K.W - top_value_cy),       # BL
         (K.C, bm_icon_cy, bm_value_cy),                              # BM
-        (K.W - side_x, K.W - top_icon_cy, K.W - top_value_cy),       # BR
-        (K.C, K.W - bm_icon_cy, K.W - bm_value_cy),                  # TM (mirrors BM: icon nearest the band)
+        (K.W - side_x, K.W - top_icon_cy + dsc, K.W - top_value_cy), # BR
+        (K.C, K.W - bm_icon_cy + dsc / 2, K.W - bm_value_cy - dsc / 2),  # TM (mirrors BM: icon nearest the band)
     ]
     section = None
     if K.SECTION_LAYOUT:
