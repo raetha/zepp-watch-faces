@@ -2,15 +2,7 @@
 // Change faces/sextant/design/config.py and re-run the generator (npm run assets).
 export const LAYOUT = {
   "markers": {
-    "top": {
-      "x": 232,
-      "y": 5
-    },
-    "bottom": {
-      "x": 232,
-      "y": 459
-    },
-    "compass": []
+    "fixed": []
   },
   "gauge": {
     "segments": [
@@ -554,8 +546,13 @@ export const LAYOUT = {
             "r_outer": 233
           }
         ],
-        "marker": "bottom",
-        "marker_after": 9
+        "marker": {
+          "k": 1,
+          "x": 232,
+          "y": 459,
+          "after": 9,
+          "base": "dim"
+        }
       },
       {
         "ticks": [
@@ -823,8 +820,13 @@ export const LAYOUT = {
             "r_outer": 233
           }
         ],
-        "marker": "top",
-        "marker_after": 9
+        "marker": {
+          "k": 0,
+          "x": 232,
+          "y": 5,
+          "after": 9,
+          "base": "dim"
+        }
       }
     ]
   },

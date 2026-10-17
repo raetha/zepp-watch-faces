@@ -76,3 +76,9 @@ See the repository's `docs/development.md` for how to switch to any of these.
   - Steps is top-middle and calories top-left. The date is 32/42/32px, as now. The band was the 152px one then; with the 160px band the corner gap grows a little.
   - Override: `{"SECTION_LAYOUT": "corners", "DEFAULT_SLOTS": ["calories","heart","distance","weather","floors","steps"]}` (plus the 152px band to reproduce it exactly: `BAND_T` 164, `BAND_B` 316, and a 13° flare).
 
+### Markers, corner ticks, brass ends and section rules (mock switches)
+
+- `MARKERS="brass6"`: N, S and the four diagonals (45.5° and mirrored, ticks 44/46 removed). Each stays brass until its gauge's progress passes it, then takes the gauge's colour. `brass2` / `brass8` are fixed brass; `progress` (default) is N/S only, dim until passed.
+- `CORNER_EXTRA_TICK=True`: one more tick at the divider end of each corner gauge, so its gap to the divider (about 2.1°) matches the middle gauges more closely (4.1° without it).
+- `BRASS_FLOOR=0.35`: band edges and brass separators keep 35% brass at their ends instead of fading to the dim edge colour.
+- `RULE_STYLE` (sections mode with `SECTION_RULES`): `short`, `long` (stops `RULE_END_GAP` px from the dividers), `flare_out` (ends bend toward the rim along the line to the divider elbow), `flare_in` (ends bend toward the band at the mirrored angle), plus `_brass` suffixes for a brass gradient. `RULE_FLAT` sets the flat middle of the flared styles.

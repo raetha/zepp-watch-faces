@@ -78,9 +78,20 @@ GLANCE_SPLIT = (["disconnect", "lock"], ["dnd", "alarm"])   # split mode: left p
 SECTION_RULES = False                     # sections mode: short rule between the status pair and the metric
 SECTION_RULE_W = 44
 SEPARATOR_BRASS = False                   # band separators get the band edges' brass gradient
-MARKERS = "progress"                      # "progress": top/bottom markers light with their gauge
+MARKERS = "progress"                      # "progress": top/bottom markers, dim until their gauge passes
                                           # "brass2": north/south markers, always brass
                                           # "brass8": brass markers at all eight compass points
+                                          # "brass6": N, S and diagonals: brass until their gauge
+                                          #   passes them, then the gauge's colour
+CORNER_EXTRA_TICK = False                 # one more tick at the divider end of each corner gauge
+BRASS_FLOOR = 0.0                         # brass gradients (band edges, separators) keep at least
+                                          #   this share of brass at their ends
+RULE_END_GAP = 6            # long rules stop this far from the dividers
+RULE_FLAT = 64              # flat middle of the flared rules
+RULE_STYLE = "short"                      # sections rules: "short", "long", "flare_out" (ends bend
+                                          #   towards the rim, aimed at the divider elbows),
+                                          #   "flare_in" (ends bend towards the band), "brass" (long,
+                                          #   brass gradient)
 GLANCE_SECTIONS = (["alarm", "dnd"], ["disconnect", "lock"])   # sections mode: top pair, bottom pair
 GLANCE_PAIR_GAP = 8                       # split mode: gap between the two icons of a pair
                       # time centred in the band; condition text centred below it

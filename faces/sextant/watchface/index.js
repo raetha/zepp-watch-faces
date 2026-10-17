@@ -197,11 +197,11 @@ WatchFace({
     this.editBg.setProperty(hmUI.prop.SRC, `edit/bg_${theme}.png`);
 
     // fixed brass compass markers (MARKERS brass2 / brass8) and section rules
-    (L.markers.compass || []).forEach((m) => {
-      this.w(hmUI.widget.IMG, { x: px_(m.x), y: px_(m.y), src: `marker/${theme}/compass_${m.i}.png`, show_level: NORMAL });
+    L.markers.fixed.forEach((m) => {
+      this.w(hmUI.widget.IMG, { x: px_(m.x), y: px_(m.y), src: `marker/${theme}/m${m.k}_brass.png`, show_level: NORMAL });
     });
     (L.rules || []).forEach((r) => {
-      this.w(hmUI.widget.IMG, { x: px_(r.x), y: px_(r.y), src: `rule/${theme}.png`, show_level: NORMAL });
+      this.w(hmUI.widget.IMG, { x: px_(r.x), y: px_(r.y), src: `rule/${theme}_${r.src}.png`, show_level: NORMAL });
     });
 
     // gauges: every tick is its own short ARC_PROGRESS (no overlay mask), so the
@@ -223,10 +223,11 @@ WatchFace({
       // the top- and bottom-middle gauges have a marker on the centre line (their 50% point)
       let marker = null;
       if (seg.marker) {
-        const m = L.markers[seg.marker];
+        const m = seg.marker;
+        const base = m.base === 'brass' ? `m${m.k}_brass` : `m${m.k}_dim_${id}`;
         marker = {
-          widget: this.w(hmUI.widget.IMG, { x: px_(m.x), y: px_(m.y), src: `marker/${theme}/${seg.marker}_${id}_dim.png`, show_level: NORMAL }),
-          name: seg.marker, after: seg.marker_after, lit: false,
+          widget: this.w(hmUI.widget.IMG, { x: px_(m.x), y: px_(m.y), src: `marker/${theme}/${base}.png`, show_level: NORMAL }),
+          k: m.k, base, after: m.after, lit: false,
         };
       }
       dyn.slots.push({ id, ticks, marker, progress: SENSOR_METRICS[id] && L.metrics[id].progress });
@@ -411,7 +412,7 @@ WatchFace({
       const lit = n > m.after;
       if (lit !== m.lit) {
         m.lit = lit;
-        m.widget.setProperty(hmUI.prop.SRC, `marker/${this.theme}/${m.name}_${slot.id}_${lit ? 'lit' : 'dim'}.png`);
+        m.widget.setProperty(hmUI.prop.SRC, `marker/${this.theme}/${lit ? `m${m.k}_lit_${slot.id}` : m.base}.png`);
       }
     }
   },
