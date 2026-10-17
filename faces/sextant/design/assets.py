@@ -301,7 +301,7 @@ def make_icons():
             rgb = K.hexrgb(hx) if theme == "color" else K.THEMES[theme]["metric"]
             save(svg_to_image(BATTERY_SVG("#%02x%02x%02x" % rgb), K.BATTERY_ICON_PX), f"battery/{theme}/{level}.png")
         for name, svg in GLANCE_SVG.items():
-            img = retint(svg_to_image(svg, K.GLANCE_SIZE), theme, K.THEMES[theme].get("metric"))
+            img = centred(retint(svg_to_image(svg, K.GLANCE_SIZE), theme, K.THEMES[theme].get("metric")), K.GLANCE_SIZE)
             # the active icon covers the always-drawn off icon, so it sits on a disc of the
             # band colour at its position (the disc then doesn't show)
             if K.SECTION_LAYOUT == "corners":       # in the band, near the separators
@@ -314,7 +314,7 @@ def make_icons():
             ImageDraw.Draw(backed).ellipse([0, 0, img.width - 1, img.height - 1], fill=disc + (255,))
             backed.alpha_composite(img)
             save(backed, f"status/{theme}/{name}.png")
-            off = retint(svg_to_image(GLANCE_OFF_SVG[name], K.GLANCE_SIZE), theme, K.THEMES[theme].get("muted_icon"))
+            off = centred(retint(svg_to_image(GLANCE_OFF_SVG[name], K.GLANCE_SIZE), theme, K.THEMES[theme].get("muted_icon")), K.GLANCE_SIZE)
             save(off, f"status/{theme}/{name}_off.png")
     # always-on battery icon (dim, single colour per theme)
     for theme in THEME_NAMES:

@@ -186,4 +186,7 @@ for _k, _v in _json.loads(_os.environ.get("SEXTANT_OVERRIDES", "{}")).items():
     if _k not in globals():
         raise KeyError(f"unknown override {_k}")
     globals()[_k] = _v
+# derived values follow any overridden band edges
+BAND_IN = (BAND_T + 1, BAND_B - 1)
+MID = (BAND_T + BAND_B) / 2
 
