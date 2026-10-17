@@ -292,7 +292,12 @@ def make_icons():
             img = retint(svg_to_image(svg, K.GLANCE_SIZE), theme, K.THEMES[theme].get("metric"))
             # the active icon covers the always-drawn off icon, so it sits on a disc of the
             # band colour at its position (the disc then doesn't show)
-            disc = (0, 0, 0) if K.SECTION_LAYOUT else band_colour_at(theme, glance_x(name))
+            if K.SECTION_LAYOUT == "corners":       # in the band, near the separators
+                disc = band_colour_at(theme, K.SEP_X[0] + 22 if K.GLANCES.index(name) % 2 == 0 else K.SEP_X[1] - 22)
+            elif K.SECTION_LAYOUT:                     # on a black panel
+                disc = (0, 0, 0)
+            else:
+                disc = band_colour_at(theme, glance_x(name))
             backed = Image.new("RGBA", img.size, (0, 0, 0, 0))
             ImageDraw.Draw(backed).ellipse([0, 0, img.width - 1, img.height - 1], fill=disc + (255,))
             backed.alpha_composite(img)
@@ -436,6 +441,12 @@ def build_layout(tm, bg_paths):
             d, v, i = three_rows_down(marker_tip, K.BAND_IN[0])
             centres[5] = (K.C, i, v)
             section = dict(row_cy=row_cy, desc_cy=d)
+        elif K.SECTION_LAYOUT == "corners":
+            # top-middle keeps its normal spot; weather + condition in the bottom section;
+            # the status icons go in the band's four corners around the time
+            d, v, i = three_rows_down(marker_tip, K.BAND_IN[0])
+            centres[3] = (K.C, K.W - i, K.W - v)
+            section = dict(row_cy=None, desc_cy=K.W - d, corners=True)
         else:  # glances_top
             row_cy = K.BAND_IN[0] - sg - gs / 2
             lo, hi = marker_tip, row_cy - gs / 2
@@ -468,7 +479,9 @@ def build_layout(tm, bg_paths):
     # ---------------------------------------------------------------- date stack (left of the time)
     small = K.DATE_DAY_PX if K.DATE_LARGE else K.DATE_SMALL_PX
     ch21, dh42 = cap_h(small), digit_h(K.DATE_DAY_PX)
-    gap1, gap2 = (8, 8) if K.DATE_LARGE else (11.1, 10.1)
+    # gaps shrink from the approved 11.1/10.1 (21px lines) to 8/8 (42px lines)
+    t_ = (small - 21) / 21
+    gap1, gap2 = 11.1 + (8 - 11.1) * t_, 10.1 + (8 - 10.1) * t_
     stack_h = ch21 + gap1 + dh42 + gap2 + ch21
 
     def date_lines(cx, top):
@@ -504,6 +517,15 @@ def build_layout(tm, bg_paths):
         gv = (K.BAND_IN[1] - K.BAND_IN[0] - th) / 2
         time_cy = K.MID
         desc_cy, row_cy = section["desc_cy"], section["row_cy"]
+        if section.get("corners"):
+            # each icon centred in its corner: between the separator stroke and the time's
+            # ink horizontally, between the band edge and the time's ink vertically
+            th_top, th_bot = time_cy - th / 2, time_cy + th / 2
+            x0_ink = K.C - (4 * tm["adv"] + tm["colon_w"]) / 2 + tm["lsb_min"]
+            cx_l = (K.SEP_X[0] + 1 + x0_ink) / 2 if x0_ink - K.SEP_X[0] > gs + 8 else K.SEP_X[0] + 1 + K.SECTION_GAP + gs / 2
+            cy_t, cy_b = (K.BAND_IN[0] + th_top) / 2, (th_bot + K.BAND_IN[1]) / 2
+            spots = [(cx_l, cy_t), (K.W - cx_l, cy_t), (cx_l, cy_b), (K.W - cx_l, cy_b)]
+            L["glances"] = [dict(name=nm, x=round(x - gs / 2), y=round(y - gs / 2)) for nm, (x, y) in zip(K.GLANCES, spots)]
     elif K.GLANCE_MODE == "row":
         # status-icon row, time and condition stacked in the band with four equal gaps
         gv = (K.BAND_IN[1] - K.BAND_IN[0] - gs - th - dh22) / 4
@@ -516,7 +538,8 @@ def build_layout(tm, bg_paths):
         time_cy = K.BAND_IN[0] + gv + th / 2
         desc_cy = K.BAND_IN[0] + 2 * gv + th + dh22 / 2
         row_cy = desc_cy
-    L["glances"] = [dict(name=nm, x=round(glance_x(nm) - gs / 2), y=round(row_cy - gs / 2)) for nm in K.GLANCES]
+    if not (section and section.get("corners")):
+        L["glances"] = [dict(name=nm, x=round(glance_x(nm) - gs / 2), y=round(row_cy - gs / 2)) for nm in K.GLANCES]
     x0 = K.C - (4 * tm["cell_w"] + tm["colon_w"]) / 2
     img_y = time_cy - tm["ink_mid"]
     L["time"] = dict(
