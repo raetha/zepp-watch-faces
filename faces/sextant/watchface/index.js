@@ -286,7 +286,9 @@ WatchFace({
 
     // time
     const timeStyle = theme === 'color' ? COLOR_TIME_STYLE : theme;
-    this.timeWidgets(`time/${timeStyle}`, L.time, NORMAL);
+    // with no condition text (no weather slot) the time centres in the band by itself
+    const hasDesc = this.settings.slots.indexOf('weather') >= 0;
+    this.timeWidgets(`time/${timeStyle}`, hasDesc ? L.time : { ...L.time, y: L.time.y_alone }, NORMAL);
     // condition text: pre-rendered names picked by the firmware (current conditions).
     // Only shown when a slot shows weather: without the temperature it's out of context.
     if (this.settings.slots.indexOf('weather') >= 0) this.w(hmUI.widget.IMG_LEVEL, {
@@ -297,7 +299,7 @@ WatchFace({
 
     // ------------------------------------------------------------ always-on
     this.w(hmUI.widget.IMG, { x: 0, y: 0, src: C.aod_bg, show_level: AOD });
-    this.timeWidgets(`aod/time_${theme}`, L.time, AOD);
+    this.timeWidgets(`aod/time_${theme}`, { ...L.time, y: L.time.y_aod }, AOD);
     const aodText = (box, color) => this.text(box, { color, show_level: AOD });
     dyn.aodDow = aodText(L.aod.date.dow, C.aod_text);
     dyn.aodDay = aodText(L.aod.date.day, C.aod_text);

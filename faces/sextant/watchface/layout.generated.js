@@ -1102,6 +1102,8 @@ export const LAYOUT = {
     "minute_x": 251,
     "colon_x": 229,
     "y": 196,
+    "y_alone": 208,
+    "y_aod": 193,
     "cell_w": 60,
     "cell_h": 95,
     "gap_side": 12.0,

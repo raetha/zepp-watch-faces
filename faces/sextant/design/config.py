@@ -71,8 +71,11 @@ CORNER_TIME_CLEAR = 3                     # corners mode: least gap from an icon
 TIME_MIN_VGAP = 16                        # time alone in the band: least gap to the band edges
 GLANCE_MODE = "row"                       # "row": status icons in a row above the time
                                           # "split": two each side of the condition text
+                                          # "sections": a pair at the band in the top- and
+                                          #   bottom-middle sections (GLANCE_SECTIONS)
 GLANCE_ROW_GAP = 14                       # row mode: gap between icons
 GLANCE_SPLIT = (["disconnect", "lock"], ["dnd", "alarm"])   # split mode: left pair, right pair
+GLANCE_SECTIONS = (["alarm", "dnd"], ["disconnect", "lock"])   # sections mode: top pair, bottom pair
 GLANCE_PAIR_GAP = 8                       # split mode: gap between the two icons of a pair
                       # time centred in the band; condition text centred below it
 TIME_PX = None                            # (solved by the generator; Roboto Regular, normal width, tabular cells)

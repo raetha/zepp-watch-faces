@@ -310,7 +310,9 @@ def make_icons():
             img = centred(retint(svg_to_image(svg, K.GLANCE_SIZE), theme, K.THEMES[theme].get("metric")), K.GLANCE_SIZE)
             # the active icon covers the always-drawn off icon, so it sits on a disc of the
             # band colour at its position (the disc then doesn't show)
-            if K.SECTION_LAYOUT == "corners":       # in the band, near the separators
+            if K.GLANCE_MODE == "sections":         # on the black section panels
+                disc = (0, 0, 0)
+            elif K.SECTION_LAYOUT == "corners":     # in the band, near the separators
                 disc = band_colour_at(theme, K.SEP_X[0] + 22 if K.GLANCES.index(name) % 2 == 0 else K.SEP_X[1] - 22)
             elif K.SECTION_LAYOUT:                     # on a black panel
                 disc = (0, 0, 0)
@@ -441,6 +443,30 @@ def build_layout(tm, bg_paths):
         (K.W - side_x, K.W - top_icon_cy + dsc, K.W - top_value_cy), # BR
         (K.C, K.W - bm_icon_cy + dsc / 2, K.W - bm_value_cy - dsc / 2),  # TM (mirrors BM: icon nearest the band)
     ]
+    sections_rows = None
+    if K.GLANCE_MODE == "sections":
+        # status-icon pairs hug the band in the top- and bottom-middle sections; those
+        # sections' metrics move out so their outer edge is as far from the ticks as the
+        # corner icons are (nearest icon-box corner to the ticks' inner end)
+        tick_in = K.RING_R - K.TICK_MAJOR
+        cx_, icy_ = centres[0][0], centres[0][1]
+        corners_ = [(cx_ + dx, icy_ + dy) for dx in (-K.ICON_PX / 2, K.ICON_PX / 2) for dy in (-K.ICON_PX / 2, K.ICON_PX / 2)]
+        rim_gap = tick_in - max(math.hypot(x - K.C, y - K.C) for x, y in corners_)
+        gs = K.GLANCE_SIZE
+        # the widest value ("99,999") keeps rim_gap from the ticks at its outer corners
+        reach = math.sqrt((tick_in - rim_gap) ** 2 - (w99 / 2) ** 2)
+        # TM: value (box incl. comma depth) on top, icon below it, status pair at the band
+        v_top = K.C - reach
+        tm_v = v_top + vh / 2
+        tm_i = v_top + vh + dsc + K.ICON_GAP + K.ICON_PX / 2
+        centres[5] = (K.C, tm_i, tm_v)
+        # BM: mirror (icon at the top, value below; box bottom incl. comma depth)
+        v_bot = K.C + reach
+        bm_v = v_bot - dsc - vh / 2
+        bm_i = bm_v - vh / 2 - K.ICON_GAP - K.ICON_PX / 2
+        centres[3] = (K.C, bm_i, bm_v)
+        sections_rows = dict(top=K.BAND_IN[0] - K.SECTION_GAP - gs / 2, bottom=K.BAND_IN[1] + K.SECTION_GAP + gs / 2)
+        L["_notes_rim_gap"] = round(rim_gap, 1)
     section = None
     if K.SECTION_LAYOUT:
         # status-icon row hugging one side of the band; the weather section gets three rows:
@@ -563,6 +589,18 @@ def build_layout(tm, bg_paths):
             spots = [(cx_l, cy_t), (K.W - cx_l, cy_t), (cx_l, cy_b), (K.W - cx_l, cy_b)]
             L["_notes_corner_gap"] = round(g, 2)
             L["glances"] = [dict(name=nm, x=round(x - gs / 2), y=round(y - gs / 2)) for nm, (x, y) in zip(K.GLANCES, spots)]
+    elif K.GLANCE_MODE == "sections":
+        # the band holds the time and the condition text, three equal gaps
+        gv = (K.BAND_IN[1] - K.BAND_IN[0] - th - dh22) / 3
+        time_cy = K.BAND_IN[0] + gv + th / 2
+        desc_cy = K.BAND_IN[0] + 2 * gv + th + dh22 / 2
+        row_cy = None
+        spots = {}
+        for key, pair in (("top", K.GLANCE_SECTIONS[0]), ("bottom", K.GLANCE_SECTIONS[1])):
+            w_ = 2 * gs + K.GLANCE_ROW_GAP
+            for k, nm in enumerate(pair):
+                spots[nm] = (K.C - w_ / 2 + gs / 2 + k * (gs + K.GLANCE_ROW_GAP), sections_rows[key])
+        L["glances"] = [dict(name=nm, x=round(spots[nm][0] - gs / 2), y=round(spots[nm][1] - gs / 2)) for nm in K.GLANCES]
     elif K.GLANCE_MODE == "row":
         # status-icon row, time and condition stacked in the band with four equal gaps
         gv = (K.BAND_IN[1] - K.BAND_IN[0] - gs - th - dh22) / 4
@@ -575,13 +613,16 @@ def build_layout(tm, bg_paths):
         time_cy = K.BAND_IN[0] + gv + th / 2
         desc_cy = K.BAND_IN[0] + 2 * gv + th + dh22 / 2
         row_cy = desc_cy
-    if not (section and section.get("corners")):
+    if not (section and section.get("corners")) and K.GLANCE_MODE != "sections":
         L["glances"] = [dict(name=nm, x=round(glance_x(nm) - gs / 2), y=round(row_cy - gs / 2)) for nm in K.GLANCES]
     x0 = K.C - (4 * tm["cell_w"] + tm["colon_w"]) / 2
     img_y = time_cy - tm["ink_mid"]
     L["time"] = dict(
         hour_x=round(x0), minute_x=round(x0 + 2 * tm["cell_w"] + tm["colon_w"]),
         colon_x=round(x0 + 2 * tm["cell_w"]), y=round(img_y),
+        # no condition text (no weather slot): centred in what the band has left
+        y_alone=round((((row_cy + gs / 2) + K.BAND_IN[1]) / 2 if K.GLANCE_MODE == "row" else K.MID) - tm["ink_mid"]),
+        y_aod=round(K.MID - tm["ink_mid"]),       # always-on: the time is alone in the band
         cell_w=tm["cell_w"], cell_h=tm["cell_h"], gap_side=round(gh, 1), gap_vertical=round(gv, 1),
     )
     L["desc"] = text_box(K.DESC_PX, K.C, desc_cy, 260, "HEOTX")
