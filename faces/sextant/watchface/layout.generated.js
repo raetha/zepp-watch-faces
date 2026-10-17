@@ -9,7 +9,8 @@ export const LAYOUT = {
     "bottom": {
       "x": 232,
       "y": 459
-    }
+    },
+    "compass": []
   },
   "gauge": {
     "segments": [

@@ -196,6 +196,14 @@ WatchFace({
     this.w(hmUI.widget.IMG, { x: 0, y: 0, src: C.bg, show_level: NORMAL });
     this.editBg.setProperty(hmUI.prop.SRC, `edit/bg_${theme}.png`);
 
+    // fixed brass compass markers (MARKERS brass2 / brass8) and section rules
+    (L.markers.compass || []).forEach((m) => {
+      this.w(hmUI.widget.IMG, { x: px_(m.x), y: px_(m.y), src: `marker/${theme}/compass_${m.i}.png`, show_level: NORMAL });
+    });
+    (L.rules || []).forEach((r) => {
+      this.w(hmUI.widget.IMG, { x: px_(r.x), y: px_(r.y), src: `rule/${theme}.png`, show_level: NORMAL });
+    });
+
     // gauges: every tick is its own short ARC_PROGRESS (no overlay mask), so the
     // result does not depend on how the firmware layers arcs and images.
     const g = L.gauge;

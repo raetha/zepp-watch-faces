@@ -75,6 +75,12 @@ GLANCE_MODE = "row"                       # "row": status icons in a row above t
                                           #   bottom-middle sections (GLANCE_SECTIONS)
 GLANCE_ROW_GAP = 14                       # row mode: gap between icons
 GLANCE_SPLIT = (["disconnect", "lock"], ["dnd", "alarm"])   # split mode: left pair, right pair
+SECTION_RULES = False                     # sections mode: short rule between the status pair and the metric
+SECTION_RULE_W = 44
+SEPARATOR_BRASS = False                   # band separators get the band edges' brass gradient
+MARKERS = "progress"                      # "progress": top/bottom markers light with their gauge
+                                          # "brass2": north/south markers, always brass
+                                          # "brass8": brass markers at all eight compass points
 GLANCE_SECTIONS = (["alarm", "dnd"], ["disconnect", "lock"])   # sections mode: top pair, bottom pair
 GLANCE_PAIR_GAP = 8                       # split mode: gap between the two icons of a pair
                       # time centred in the band; condition text centred below it

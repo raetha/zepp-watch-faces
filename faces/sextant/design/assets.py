@@ -79,9 +79,23 @@ def draw_dividers(d, theme):
             d.line([(P(x), P(y)) for x, y in pts], fill=col, width=P(K.LINE_W), joint="curve")
 
 
-def draw_separators(d, col):
+def draw_separators(d, col, theme=None):
+    """Band separators. With SEPARATOR_BRASS (and a theme) they take the band edges' look:
+    brass in the middle fading to the dim edge colour at the ends."""
     for i in (0, 1):
-        d.line([(P(x), P(y)) for x, y in G.separator_points(i)], fill=col, width=P(K.LINE_W), joint="curve")
+        pts = G.separator_points(i)
+        if not (K.SEPARATOR_BRASS and theme):
+            d.line([(P(x), P(y)) for x, y in pts], fill=col, width=P(K.LINE_W), joint="curve")
+            continue
+        t = K.THEMES[theme]
+        segs = []
+        for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
+            n = 40
+            segs += [((x1 + (x2 - x1) * k / n, y1 + (y2 - y1) * k / n), (x1 + (x2 - x1) * (k + 1) / n, y1 + (y2 - y1) * (k + 1) / n)) for k in range(n)]
+        half = (pts[-1][1] - pts[0][1]) / 2
+        for (xa, ya), (xb, yb) in segs:
+            f = 1 - abs((ya + yb) / 2 - K.MID) / half
+            d.line([P(xa), P(ya), P(xb), P(yb)], fill=lerp(t["glow_lo"], t["accent"], max(0, f) ** 1.8), width=P(K.LINE_W))
 
 
 def tick_line(d, deg, col, length, r_out=K.RING_R, width=K.TICK_WIDTH):
@@ -95,10 +109,37 @@ def tick_line(d, deg, col, length, r_out=K.RING_R, width=K.TICK_WIDTH):
 MARKER_TIP_R, MARKER_BASE_R, MARKER_HALF_W, MARKER_BOX = K.RING_R - 13, K.RING_R + 1, 5.0, 16
 
 
+def marker_image(zepp_deg, col):
+    """A triangle marker at zepp_deg (tip towards the centre), cut to a small box around it."""
+    big = Image.new("RGBA", (K.W * S, K.W * S), (0, 0, 0, 0))
+    a = math.radians(zepp_deg)
+    ux, uy = math.sin(a), -math.cos(a)                 # outward
+    vx, vy = math.cos(a), math.sin(a)                  # tangent
+    tip = (K.C + MARKER_TIP_R * ux, K.C + MARKER_TIP_R * uy)
+    bc = (K.C + MARKER_BASE_R * ux, K.C + MARKER_BASE_R * uy)
+    pts = [tip, (bc[0] - MARKER_HALF_W * vx, bc[1] - MARKER_HALF_W * vy), (bc[0] + MARKER_HALF_W * vx, bc[1] + MARKER_HALF_W * vy)]
+    ImageDraw.Draw(big).polygon([(P(x), P(y)) for x, y in pts], fill=col + (255,))
+    cx, cy = K.C + (MARKER_TIP_R + MARKER_BASE_R) / 2 * ux, K.C + (MARKER_TIP_R + MARKER_BASE_R) / 2 * uy
+    x0, y0 = int(round(cx - MARKER_BOX / 2)), int(round(cy - MARKER_BOX / 2))
+    crop = big.crop((x0 * S, y0 * S, (x0 + MARKER_BOX) * S, (y0 + MARKER_BOX) * S))
+    return down(crop), x0, y0
+
+
+def compass_angles():
+    """Brass marker angles (zepp degrees) for MARKERS brass2 / brass8. The diagonals sit
+    half a degree off 45 so whole-degree ticks either side are equally far away."""
+    if K.MARKERS == "brass2":
+        return [0, 180]
+    if K.MARKERS == "brass8":
+        return [0, 45.5, 90, 134.5, 180, 225.5, 270, 314.5]
+    return []
+
+
 def make_markers():
     """Triangle markers on the centre line of the top- and bottom-middle gauges (their 50%
     point), lit and dim in every metric colour, so code can switch them like a tick.
-    They're images because the firmware draws arcs only in whole degrees."""
+    They're images because the firmware draws arcs only in whole degrees.
+    MARKERS brass2/brass8 instead gives fixed brass markers (compass points)."""
     h = (MARKER_BASE_R - MARKER_TIP_R) * S
     c = MARKER_BOX * S / 2
     for theme in THEME_NAMES:
@@ -111,9 +152,16 @@ def make_markers():
                     ImageDraw.Draw(img).polygon([(c, c + sign * h / 2), (c - P(MARKER_HALF_W), c - sign * h / 2),
                                                  (c + P(MARKER_HALF_W), c - sign * h / 2)], fill=col + (255,))
                     save(down(img), f"marker/{theme}/{name}_{metric}_{state}.png")
+    brass = []
+    for k, ang in enumerate(compass_angles()):
+        for theme in THEME_NAMES:
+            img, x0, y0 = marker_image(ang, K.THEMES[theme]["accent"])
+            save(img, f"marker/{theme}/compass_{k}.png")
+        brass.append(dict(i=k, x=x0, y=y0))
     cy = K.C - (MARKER_TIP_R + MARKER_BASE_R) / 2
     x = round(K.C - MARKER_BOX / 2)
-    return dict(top=dict(x=x, y=round(cy - MARKER_BOX / 2)), bottom=dict(x=x, y=round(K.W - cy - MARKER_BOX / 2)))
+    return dict(top=dict(x=x, y=round(cy - MARKER_BOX / 2)), bottom=dict(x=x, y=round(K.W - cy - MARKER_BOX / 2)),
+                compass=brass)
 
 
 def round_crop(img):
@@ -132,7 +180,7 @@ def make_backgrounds():
         draw_dividers(d, theme)
         draw_band(img, theme)
         d = ImageDraw.Draw(img)
-        draw_separators(d, K.THEMES[theme]["divider"])
+        draw_separators(d, K.THEMES[theme]["divider"], theme)
         paths[theme] = save(down(round_crop(img)).convert("RGB"), f"bg/{theme}.png")
         # always-on background: separators only, very dim
         aod = Image.new("RGBA", (K.W * S, K.W * S), (0, 0, 0, 0))
@@ -403,17 +451,20 @@ def build_layout(tm, bg_paths):
     for slot, si in enumerate(G.SLOT_SEGMENT):
         ticks = []
         marker_at = None
+        skip = {44, 46, 134, 136, 224, 226, 314, 316} if K.MARKERS == "brass8" else set()
         for t in G.segment_ticks(segs[si]):
             arc = G.tick_arc(t)
             if arc is None:                    # centre line: the marker sits here
                 marker_at = len(ticks)
+                continue
+            if round(G.to_zepp(t)) % 360 in skip:     # room for a diagonal compass marker
                 continue
             major = round(t) % K.TICK_MAJOR_EVERY == 0
             L_ = K.TICK_MAJOR if major else K.TICK_MINOR
             ticks.append(dict(s=arc[0], e=arc[1], len=L_,
                               r_center=round(K.RING_R - L_ / 2, 1), r_outer=K.RING_R))
         g = dict(ticks=ticks)
-        if marker_at is not None:              # lit once the fill passes the centre line
+        if marker_at is not None and K.MARKERS == "progress":   # lit once the fill passes the centre line
             g["marker"] = "top" if si == 1 else "bottom"
             g["marker_after"] = marker_at
         gauges.append(g)
@@ -466,6 +517,11 @@ def build_layout(tm, bg_paths):
         bm_i = bm_v - vh / 2 - K.ICON_GAP - K.ICON_PX / 2
         centres[3] = (K.C, bm_i, bm_v)
         sections_rows = dict(top=K.BAND_IN[0] - K.SECTION_GAP - gs / 2, bottom=K.BAND_IN[1] + K.SECTION_GAP + gs / 2)
+        if K.SECTION_RULES:
+            # a short rule midway between each status pair and its metric's icon box
+            ry_t = ((tm_i + K.ICON_PX / 2) + (sections_rows["top"] - gs / 2)) / 2
+            ry_b = ((bm_i - K.ICON_PX / 2) + (sections_rows["bottom"] + gs / 2)) / 2
+            L["rules"] = [dict(x=round(K.C - K.SECTION_RULE_W / 2), y=round(y - K.LINE_W / 2)) for y in (ry_t, ry_b)]
         L["_notes_rim_gap"] = round(rim_gap, 1)
     section = None
     if K.SECTION_LAYOUT:
@@ -674,6 +730,11 @@ def make_edit_assets(L):
     for w, h in sizes:
         save(frame(w, h, (214, 172, 96, 255), 3), f"edit/select_{w}x{h}.png")
         save(frame(w, h, (120, 128, 140, 200), 2), f"edit/unselect_{w}x{h}.png")
+    for theme in THEME_NAMES:
+        img = Image.new("RGBA", (K.SECTION_RULE_W * S, K.LINE_W * S), (0, 0, 0, 0))
+        ImageDraw.Draw(img).rounded_rectangle([0, 0, img.width - 1, img.height - 1], radius=P(K.LINE_W / 2),
+                                              fill=K.THEMES[theme]["divider"] + (255,))
+        save(down(img), f"rule/{theme}.png")
     # The firmware draws the tip text in its own (dark) colour, so the tip is light.
     tip = Image.new("RGBA", (150 * S, 40 * S), (0, 0, 0, 0))
     ImageDraw.Draw(tip).rounded_rectangle([0, 0, tip.width - 1, tip.height - 1], radius=P(20), fill=(240, 216, 160, 255), outline=(255, 244, 214, 255), width=P(2))
