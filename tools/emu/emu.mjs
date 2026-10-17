@@ -116,8 +116,10 @@ async function start(args) {
   if (!fs.existsSync(FLASH)) fs.copyFileSync(path.join(EMU, 'fw/norflash.bin'), FLASH);
   try { execFileSync('pgrep', ['-x', 'Xvfb']); } catch {
     spawn('Xvfb', [DISPLAY, '-screen', '0', '800x700x24'], { detached: true, stdio: 'ignore' }).unref();
-    await sleep(1000);
   }
+  // QEMU's GTK window exits at once if the display isn't up yet: wait for its socket
+  for (let i = 0; i < 50 && !fs.existsSync(`/tmp/.X11-unix/X${DISPLAY.slice(1)}`); i++) await sleep(200);
+  await sleep(500);
   const qemu = spawn(path.join(QEMU_DIR, 'qemu-system-arm'), [
     '-M', 'mps2-an521', '-semihosting',
     '-drive', `file=${FLASH},bus=0,unit=0,format=raw`,

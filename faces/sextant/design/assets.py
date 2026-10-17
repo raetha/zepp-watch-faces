@@ -442,11 +442,16 @@ def build_layout(tm, bg_paths):
             centres[5] = (K.C, i, v)
             section = dict(row_cy=row_cy, desc_cy=d)
         elif K.SECTION_LAYOUT == "corners":
-            # top-middle keeps its normal spot; weather + condition in the bottom section;
-            # the status icons go in the band's four corners around the time
-            d, v, i = three_rows_down(marker_tip, K.BAND_IN[0])
-            centres[3] = (K.C, K.W - i, K.W - v)
-            section = dict(row_cy=None, desc_cy=K.W - d, corners=True)
+            # top-middle keeps its normal spot; the status icons go in the band's four corners
+            # around the time. Bottom section: weather icon top-aligned with the bottom
+            # corners' value ink, temperature below it, condition text centred between the
+            # temperature and the bottom marker's tip.
+            icon_top = K.W - top_value_cy - vh / 2
+            i = icon_top + K.ICON_PX / 2
+            v = icon_top + K.ICON_PX + K.ICON_GAP + vh / 2
+            d = ((v + vh / 2) + (K.W - marker_tip)) / 2
+            centres[3] = (K.C, i, v)
+            section = dict(row_cy=None, desc_cy=d, corners=True)
         else:  # glances_top
             row_cy = K.BAND_IN[0] - sg - gs / 2
             lo, hi = marker_tip, row_cy - gs / 2
@@ -518,13 +523,22 @@ def build_layout(tm, bg_paths):
         time_cy = K.MID
         desc_cy, row_cy = section["desc_cy"], section["row_cy"]
         if section.get("corners"):
-            # each icon centred in its corner: between the separator stroke and the time's
-            # ink horizontally, between the band edge and the time's ink vertically
+            # each icon sits in the corner between the band edge and the separator's flared
+            # end, the same distance g from both (measured to a 22px circle around the icon);
+            # g is the largest that keeps CORNER_TIME_CLEAR from the time's ink
             th_top, th_bot = time_cy - th / 2, time_cy + th / 2
-            x0_ink = K.C - (4 * tm["adv"] + tm["colon_w"]) / 2 + tm["lsb_min"]
-            cx_l = (K.SEP_X[0] + 1 + x0_ink) / 2 if x0_ink - K.SEP_X[0] > gs + 8 else K.SEP_X[0] + 1 + K.SECTION_GAP + gs / 2
-            cy_t, cy_b = (K.BAND_IN[0] + th_top) / 2, (th_bot + K.BAND_IN[1]) / 2
+            (fx1, fy1), (fx2, fy2) = G.separator_points(0)[:2]
+            theta = math.atan2(abs(fx2 - fx1), fy2 - fy1)
+            r = gs / 2
+            def spot(g):
+                cy = K.BAND_IN[0] + r + g
+                xl = fx1 + (fx2 - fx1) * (cy - fy1) / (fy2 - fy1)
+                return xl + (r + g) / math.cos(theta), cy
+            g = max(gg / 4 for gg in range(0, 64) if spot(gg / 4)[1] + r <= th_top - K.CORNER_TIME_CLEAR)
+            cx_l, cy_t = spot(g)
+            cy_b = K.W - cy_t
             spots = [(cx_l, cy_t), (K.W - cx_l, cy_t), (cx_l, cy_b), (K.W - cx_l, cy_b)]
+            L["_notes_corner_gap"] = round(g, 2)
             L["glances"] = [dict(name=nm, x=round(x - gs / 2), y=round(y - gs / 2)) for nm, (x, y) in zip(K.GLANCES, spots)]
     elif K.GLANCE_MODE == "row":
         # status-icon row, time and condition stacked in the band with four equal gaps

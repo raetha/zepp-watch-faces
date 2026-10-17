@@ -66,6 +66,7 @@ SECTION_LAYOUT = None                     # None: status icons + condition in th
                                           # "corners": icons in the band's four corners around the
                                           #   time, weather + condition in the bottom section
 SECTION_GAP = 10                          # band edge -> status-icon row in the section layouts
+CORNER_TIME_CLEAR = 3                     # corners mode: least gap from an icon to the time's ink
 TIME_MIN_VGAP = 16                        # time alone in the band: least gap to the band edges
 GLANCE_MODE = "row"                       # "row": status icons in a row above the time
                                           # "split": two each side of the condition text
