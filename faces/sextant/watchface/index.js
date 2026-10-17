@@ -287,8 +287,9 @@ WatchFace({
     // time
     const timeStyle = theme === 'color' ? COLOR_TIME_STYLE : theme;
     this.timeWidgets(`time/${timeStyle}`, L.time, NORMAL);
-    // condition text: pre-rendered names picked by the firmware (current conditions)
-    this.w(hmUI.widget.IMG_LEVEL, {
+    // condition text: pre-rendered names picked by the firmware (current conditions).
+    // Only shown when a slot shows weather: without the temperature it's out of context.
+    if (this.settings.slots.indexOf('weather') >= 0) this.w(hmUI.widget.IMG_LEVEL, {
       x: px_(L.desc_img.x), y: px_(L.desc_img.y),
       image_array: L.weather_desc.map((_, i) => `desc/${theme}/${i}.png`), image_length: L.weather_desc.length,
       type: hmUI.data_type.WEATHER_CURRENT, show_level: NORMAL,

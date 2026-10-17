@@ -52,7 +52,7 @@ def draw_band(img, theme):
         for xa, xb in zip(xs[:-1], xs[1:]):
             f = 1 - abs((xa + xb) / 2 / K.W - 0.5) * 2
             col = lerp(t["glow_lo"], t["accent"], max(0, f) ** 1.8)
-            d.line([P(xa), P(fn(xa)), P(xb), P(fn(xb))], fill=col, width=P(2))
+            d.line([P(xa), P(fn(xa)), P(xb), P(fn(xb))], fill=col, width=P(K.LINE_W))
 
 
 def _band_fill(img, t):
@@ -76,12 +76,12 @@ def draw_dividers(d, theme):
             pts = G.divider_points(side, top)
             y0 = K.BAND_T - K.DIV_START_GAP if top else K.BAND_B + K.DIV_START_GAP
             pts = [(pts[0][0], y0)] + pts[1:]
-            d.line([(P(x), P(y)) for x, y in pts], fill=col, width=P(2), joint="curve")
+            d.line([(P(x), P(y)) for x, y in pts], fill=col, width=P(K.LINE_W), joint="curve")
 
 
 def draw_separators(d, col):
     for i in (0, 1):
-        d.line([(P(x), P(y)) for x, y in G.separator_points(i)], fill=col, width=P(2), joint="curve")
+        d.line([(P(x), P(y)) for x, y in G.separator_points(i)], fill=col, width=P(K.LINE_W), joint="curve")
 
 
 def tick_line(d, deg, col, length, r_out=K.RING_R, width=K.TICK_WIDTH):
@@ -279,6 +279,12 @@ def centred(img, size):
     return out
 
 
+def battery_ink_h():
+    img = centred(svg_to_image(BATTERY_SVG("#ffffff"), K.BATTERY_ICON_PX), K.BATTERY_ICON_PX)
+    bb = img.getchannel("A").getbbox()
+    return bb[3] - bb[1]
+
+
 def metric_rgb(theme, metric):
     if theme == "color":
         return K.hexrgb(K.METRICS[metric][1])
@@ -299,7 +305,7 @@ def make_icons():
             save(centred(small, K.ICON_PX), f"icons/{theme}/weather_{i}.png")
         for level, hx in K.BATTERY_COLORS.items():
             rgb = K.hexrgb(hx) if theme == "color" else K.THEMES[theme]["metric"]
-            save(svg_to_image(BATTERY_SVG("#%02x%02x%02x" % rgb), K.BATTERY_ICON_PX), f"battery/{theme}/{level}.png")
+            save(centred(svg_to_image(BATTERY_SVG("#%02x%02x%02x" % rgb), K.BATTERY_ICON_PX), K.BATTERY_ICON_PX), f"battery/{theme}/{level}.png")
         for name, svg in GLANCE_SVG.items():
             img = centred(retint(svg_to_image(svg, K.GLANCE_SIZE), theme, K.THEMES[theme].get("metric")), K.GLANCE_SIZE)
             # the active icon covers the always-drawn off icon, so it sits on a disc of the
@@ -319,7 +325,7 @@ def make_icons():
     # always-on battery icon (dim, single colour per theme)
     for theme in THEME_NAMES:
         rgb = K.THEMES[theme]["aod_text"]
-        save(svg_to_image(BATTERY_SVG("#%02x%02x%02x" % rgb), K.BATTERY_ICON_PX), f"aod/battery_{theme}.png")
+        save(centred(svg_to_image(BATTERY_SVG("#%02x%02x%02x" % rgb), K.BATTERY_ICON_PX), K.BATTERY_ICON_PX), f"aod/battery_{theme}.png")
 
 
 # ============================================================================= weather condition text
@@ -517,12 +523,14 @@ def build_layout(tm, bg_paths):
     L["theme_edit"] = dict(x=round(side_l - 44), y=round(top - 10), w=88, h=round(stack_h + 20))
 
     bh = digit_h(K.BATTERY_VALUE_PX)
-    bat_ink = K.BATTERY_ICON_PX * 10 / 24                 # the glyph's drawn height
-    blk = bat_ink + K.SIDE_BLOCK_GAP + bh
+    # battery: the drawing is centred in its box and much shorter than it is wide, so
+    # space it on the drawing itself, with the same visible gap as the complications
+    bat_ink = battery_ink_h()
+    blk = bat_ink + K.VISIBLE_ICON_GAP + bh
     btop = K.MID - blk / 2
     L["battery"] = dict(
         icon=dict(x=round(side_r - K.BATTERY_ICON_PX / 2), y=round(btop + bat_ink / 2 - K.BATTERY_ICON_PX / 2), size=K.BATTERY_ICON_PX),
-        text=text_box(K.BATTERY_VALUE_PX, side_r, btop + bat_ink + K.SIDE_BLOCK_GAP + bh / 2, 100),
+        text=text_box(K.BATTERY_VALUE_PX, side_r, btop + bat_ink + K.VISIBLE_ICON_GAP + bh / 2, 100),
     )
 
     # ---------------------------------------------------------------- time + description

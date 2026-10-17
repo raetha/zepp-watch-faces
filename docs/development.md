@@ -113,6 +113,10 @@ node tools/emu/emu.mjs face                           # back to the watch face
 node tools/emu/emu.mjs stop
 ```
 
+**Spacing check:** `python3 tools/emu/audit.py faces/sextant shot.png` measures each complication's icon and value centring and gaps, plus the battery, the date, the status-icon row and the condition text, on an emulator screenshot.
+
+**Mock-ups:** `SEXTANT_OVERRIDES='{"KEY": value}' python3 faces/sextant/design/generate.py` builds a variant from any `config.py` constants without editing the file. Install it on the emulator and screenshot it for side-by-side comparisons.
+
 **Screenshots:** `npm run screenshots -- <face>` runs `tools/emu/screenshots.mjs`, which follows `faces/<face>/emu-shots.json`:
 - each run resets the watch, boots at a set time, installs the face and applies the values;
 - steps take shots, take always-on shots, open the editor and cycle options;

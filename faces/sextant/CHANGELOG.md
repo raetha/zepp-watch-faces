@@ -7,6 +7,17 @@ All notable changes to the Sextant watch face. The format follows
 
 ## [Unreleased]
 
+### Changed
+- The time bar is exactly a third of the screen height, and the time uses Roboto Condensed at 121px (was Roboto at 106px).
+- Weekday and month are bigger (32px, was 21px), so they're easier to read.
+- Dividers, separators and band edges are 1px wider (3px), because 2px was too faint on the watch.
+- Steps moves to the bottom centre, and calories to the top left.
+- The weather condition under the time only shows when a complication shows weather.
+
+### Fixed
+- Icons are centred in their boxes, and the battery icon has the same gap to its percentage as the complications.
+- A value with a comma (like 12,486) above its icon no longer crowds the icon.
+
 ## [1.0.0] - 2026-10-16
 
 ### Added

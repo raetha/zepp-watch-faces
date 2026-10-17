@@ -31,7 +31,7 @@ All screenshots are taken on the real Zepp OS firmware (Amazfit Balance 2 emulat
 ## Features
 
 - **Time:** a large, fixed-width time that never shifts sideways. Follows your 12/24-hour setting (no AM/PM by design). No seconds.
-- **Weather:** the current condition's icon and temperature at the top (a complication, so it can move or be swapped), with the condition's name under the time.
+- **Weather:** the current condition's icon and temperature at the top (a complication, so it can move or be swapped), with the condition's name under the time (shown whenever a complication shows weather).
 - **Battery:** icon and percentage on the right. The icon turns orange at 40% and red at 20%.
 - **Date:** weekday, day and month on the left of the time bar.
 - **Status icons** above the time: Bluetooth, Do Not Disturb, alarm and screen lock. Each slot always shows something: a blue Bluetooth icon while connected (a red slashed one when disconnected), and a dim outline for the others that lights up in colour when that mode is on.

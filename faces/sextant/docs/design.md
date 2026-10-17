@@ -11,17 +11,25 @@ The decisions behind the layout, so future changes keep the same logic. All numb
 
 ## Geometry
 
-- **Centre band** (y 164–316): flat between x 108 and 372, then flaring outward at 13°. That angle makes all six bezel gauges come out equal: 37.4° and 19 ticks each, with 3.25° of empty ring at each end. Early drafts used 6.5°, giving 30.9° and 16 ticks.
+- **Centre band** (y 160–320, exactly a third of the screen height): flat between x 108 and 372, then flaring outward at 10.85°. That angle makes all six bezel gauges come out equal: 37.3° and 19 ticks each, with 3.25° of empty ring at each end. Early drafts had a 152px band at 13°, and a 6.5° gauge gap giving 30.9° and 16 ticks.
 - **Band contents:**
-  - The date stack (weekday, day, month) is centred at x 50, and the battery icon and percentage at x 430, each midway between a separator and the screen edge.
-  - The time (Roboto Regular, fixed-width digits, sized so it sits 12px from each separator: 106px) is centred between the separators at x 100 and 380, and vertically on the screen centre.
-  - The weather condition (22px caps) sits beneath the time.
+  - The date stack is centred at x 50, and the battery icon and percentage at x 430, each midway between a separator and the screen edge.
+    - Date: weekday and month at 32px and the day at 42px, with 10px between lines.
+    - Battery: its drawing is short and wide, so it's spaced on the drawing itself, with the same visible gap as the complications (`VISIBLE_ICON_GAP`, 13.5px).
+  - The time (Roboto Condensed, fixed-width digits, sized so it sits 12px from each separator: 121px) is centred between the separators at x 100 and 380. `TIME_FONT_STYLE = "regular"` gives the original Roboto at 106px.
+  - The weather condition (22px caps) sits beneath the time. It only shows when some slot shows weather: without the temperature it's out of context.
   - The status icons have two modes, set by `GLANCE_MODE` in `config.py` (row for now; split is to be reviewed on the watch, see "To review on the watch" below):
     - `"row"` (default): a centred row above the time with 14px between icons. Row, time and condition are stacked with four equal gaps (about 8.5px).
     - `"split"`: Bluetooth and lock sit left of the condition text, Do Not Disturb and alarm right of it, in the same row. Each pair is centred between the separator and the widest condition name. Time and condition then use three equal gaps (about 19px).
   - Active status icons sit on a disc of the band colour at their position, so the disc doesn't show.
+- **Lines** (dividers, separators, band edges) are 3px wide. 2px was too faint on the watch.
 - **Section dividers** rise vertically at x 186 and 294, then bend toward a rim angle of 248.1° (mirrored below). The bend sits where that radius crosses the vertical run (y ≈ 105), so the outer run is radial, like the bezel ticks next to it. `DIVIDER_RADIAL = False` puts the bend back at y 110. The band separators keep the original flare slope. The complications still use y 110 as their reference line.
-- **Complications:**
+- **Complications** use one box rule everywhere, so any metric can go in any slot:
+  - Every icon is drawn centred in the same 32px box. Drawings differ in size (heart 22px tall, UV 30px).
+  - Every value sits in the same box, from the digits' top to a comma's bottom, so "12,486" and "7" take the same space.
+  - The icon box and the value box are 10px apart (`ICON_GAP`), above or below. Visible gaps vary a few pixels with the drawing and with commas, but rows stay aligned and mirror pairs match.
+  - `tools/emu/audit.py` measures centring and gaps on an emulator screenshot.
+- **Complication positions:**
   - Top corners: the top of the value's ink sits on the divider bend line, with the icon 10px above.
   - Bottom corners are exact mirrors.
   - Corner x positions (123.2 / 356.8) give a five-digit value such as "99,999" equal gaps to the divider and to the long ticks.
@@ -59,4 +67,12 @@ See the repository's `docs/development.md` for how to switch to any of these.
 - **Status icons beside the condition text** (`GLANCE_MODE = "split"`): Bluetooth and lock on the left, Do Not Disturb and alarm on the right, with the time and condition evenly spaced (about 19px gaps, roomier than the 8.5px of row mode). Compare it with the row above the time once 1.0.0 is on the watch.
 - **Bezel balance** after the whole-degree ticks: if the gaps between the gauges and the divider lines look uneven, adjust the divider angle (`RIM_ANGLE`) or `SEG_GAP`.
 - **Previous layout** (branch `archive/previous-layout`), in case the new one doesn't hold up on the wrist.
+- **Status icons in the band's corners** (tried 2026-10-17 and liked; `SECTION_LAYOUT = "corners"`). The recipe:
+  - The band holds only the time: condensed, 121px, centred, about 31px from each band edge.
+  - The four status icons sit at full size (22px) in the band's corners around the time. Bluetooth is top left, Do Not Disturb top right, alarm bottom left and lock bottom right.
+  - Each icon is the same distance from the band edge and from the separator's flared end. That distance (about 5.75px) is solved as the largest that keeps `CORNER_TIME_CLEAR` (3px) from the time's ink.
+  - The active icons sit on discs of the band colour at their position.
+  - The weather moves to the bottom-middle section. Its icon box top is level with the bottom corners' value tops, the temperature sits below it, and the condition text is centred between the temperature and the bottom marker.
+  - Steps is top-middle and calories top-left. The date is 32/42/32px, as now. The band was the 152px one then; with the 160px band the corner gap grows a little.
+  - Override: `{"SECTION_LAYOUT": "corners", "DEFAULT_SLOTS": ["calories","heart","distance","weather","floors","steps"]}` (plus the 152px band to reproduce it exactly: `BAND_T` 164, `BAND_B` 316, and a 13° flare).
 

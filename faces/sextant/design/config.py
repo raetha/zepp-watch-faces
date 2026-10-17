@@ -17,11 +17,11 @@ W = 480
 C = W / 2
 
 # ----------------------------------------------------------------------------- centre band
-BAND_T, BAND_B = 164, 316                 # flat top / bottom edge of the band
+BAND_T, BAND_B = 160, 320                 # flat top / bottom edge of the band: exactly 1/3 of the height
 BAND_IN = (BAND_T + 1, BAND_B - 1)         # inner edges of the 2px edge lines
 MID = (BAND_T + BAND_B) / 2
 BEND = (108, 372)                         # band edges are flat between these x, then flare
-BAND_FLARE_SLOPE = math.tan(math.radians(13.0))
+BAND_FLARE_SLOPE = math.tan(math.radians(10.85))   # flare solved so all six gauges are equal (19 ticks)
 
 # separators inside the band (flared, same slope as the panel dividers)
 SEP_X = (100, 380)                        # moved out from the band bend to give the time more room
@@ -56,7 +56,7 @@ TIME_SIDE_GAP = 12                        # time size is solved so its widest va
 # The earlier pre-release layout (date top-middle, weather in the band, compass scale)
 # is kept on the git branch archive/previous-layout.
 # ---- mock-up switches (2026-10-17 review); defaults reproduce the 1.0.0 design
-TIME_FONT_STYLE = "regular"               # "regular" (Roboto) or "condensed" (Roboto Condensed)
+TIME_FONT_STYLE = "condensed"              # "regular" (Roboto) or "condensed" (Roboto Condensed)
 DATE_LARGE = False                        # weekday and month at the day's size
 SECTION_LAYOUT = None                     # None: status icons + condition in the band
                                           # "glances_bottom": icons under the band, condition text
@@ -66,7 +66,7 @@ SECTION_LAYOUT = None                     # None: status icons + condition in th
                                           # "corners": icons in the band's four corners around the
                                           #   time, weather + condition in the bottom section
 SECTION_GAP = 10                          # band edge -> status-icon row in the section layouts
-VALUE_BOX_DESCENDER = False               # value boxes include a comma's depth (values above icons)
+VALUE_BOX_DESCENDER = True                # value boxes include a comma's depth (values above icons)
 CORNER_TIME_CLEAR = 3                     # corners mode: least gap from an icon to the time's ink
 TIME_MIN_VGAP = 16                        # time alone in the band: least gap to the band edges
 GLANCE_MODE = "row"                       # "row": status icons in a row above the time
@@ -78,12 +78,14 @@ GLANCE_PAIR_GAP = 8                       # split mode: gap between the two icon
 TIME_PX = None                            # (solved by the generator; Roboto Regular, normal width, tabular cells)
 VALUE_PX = 40                             # complication values (Roboto Condensed Regular)
 UNIT_PX = 20
-DATE_SMALL_PX, DATE_DAY_PX = 21, 42
+DATE_SMALL_PX, DATE_DAY_PX = 32, 42
 SIDE_VALUE_PX = 42                        # temperature
 BATTERY_VALUE_PX = 40
 DESC_PX = 22
 ICON_PX = 32
-ICON_GAP = 10
+ICON_GAP = 10                             # icon box <-> value box
+VISIBLE_ICON_GAP = 13.5                   # the same gap measured on the drawings (icons sit ~3.5px inside their box)
+LINE_W = 3                                # dividers, separators, band edges (2 was too faint on the watch)
 WEATHER_ICON_PX = 38
 BATTERY_ICON_PX = 34
 SIDE_BLOCK_GAP = 12
@@ -111,7 +113,7 @@ METRICS = {
     "sun":      ("Sunrise/sunset", "#FFC23D", False),
     "weather":  ("Weather",        "#8AB4F8", False),
 }
-DEFAULT_SLOTS = ["steps", "heart", "distance", "calories", "floors", "weather"]   # TL, TR, BL, BM, BR, TM
+DEFAULT_SLOTS = ["calories", "heart", "distance", "steps", "floors", "weather"]   # TL, TR, BL, BM, BR, TM
 
 THEMES = {
     "color": dict(

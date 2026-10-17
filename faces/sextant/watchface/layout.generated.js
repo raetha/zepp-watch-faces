@@ -884,7 +884,7 @@ export const LAYOUT = {
       "cx": 123.2,
       "icon": {
         "x": 107,
-        "y": 380,
+        "y": 386,
         "size": 32
       },
       "value": {
@@ -903,31 +903,31 @@ export const LAYOUT = {
         "x": 65,
         "y": 332,
         "w": 116,
-        "h": 88
+        "h": 93
       }
     },
     {
       "cx": 240.0,
       "icon": {
         "x": 224,
-        "y": 354,
+        "y": 356,
         "size": 32
       },
       "value": {
         "x": 174.0,
-        "y": 384,
+        "y": 386,
         "w": 132,
         "h": 55,
         "size": 40
       },
       "unit": {
-        "y": 403.8,
+        "y": 405.8,
         "h": 29,
         "size": 20
       },
       "edit": {
         "x": 182,
-        "y": 346,
+        "y": 348,
         "w": 116,
         "h": 88
       }
@@ -936,7 +936,7 @@ export const LAYOUT = {
       "cx": 356.8,
       "icon": {
         "x": 341,
-        "y": 380,
+        "y": 386,
         "size": 32
       },
       "value": {
@@ -955,33 +955,33 @@ export const LAYOUT = {
         "x": 299,
         "y": 332,
         "w": 116,
-        "h": 88
+        "h": 93
       }
     },
     {
       "cx": 240.0,
       "icon": {
         "x": 224,
-        "y": 94,
+        "y": 95,
         "size": 32
       },
       "value": {
         "x": 174.0,
-        "y": 43,
+        "y": 38,
         "w": 132,
         "h": 55,
         "size": 40
       },
       "unit": {
-        "y": 62.8,
+        "y": 57.8,
         "h": 29,
         "size": 20
       },
       "edit": {
         "x": 182,
-        "y": 47,
+        "y": 42,
         "w": 116,
-        "h": 88
+        "h": 93
       }
     }
   ],
@@ -1035,31 +1035,31 @@ export const LAYOUT = {
   "date": {
     "dow": {
       "x": 0.0,
-      "y": 190,
+      "y": 181,
       "w": 100,
-      "h": 33,
-      "size": 21
+      "h": 46,
+      "size": 32
     },
     "day": {
       "x": 0.0,
-      "y": 213,
+      "y": 212,
       "w": 100,
       "h": 57,
       "size": 42
     },
     "month": {
       "x": 0.0,
-      "y": 258,
+      "y": 254,
       "w": 100,
-      "h": 33,
-      "size": 21
+      "h": 46,
+      "size": 32
     }
   },
   "theme_edit": {
     "x": 6,
-    "y": 189,
+    "y": 182,
     "w": 88,
-    "h": 103
+    "h": 117
   },
   "battery": {
     "icon": {
@@ -1069,7 +1069,7 @@ export const LAYOUT = {
     },
     "text": {
       "x": 380.0,
-      "y": 226,
+      "y": 229,
       "w": 100,
       "h": 55,
       "size": 40
@@ -1079,44 +1079,44 @@ export const LAYOUT = {
     {
       "name": "disconnect",
       "x": 175,
-      "y": 174
+      "y": 169
     },
     {
       "name": "dnd",
       "x": 211,
-      "y": 174
+      "y": 169
     },
     {
       "name": "alarm",
       "x": 247,
-      "y": 174
+      "y": 169
     },
     {
       "name": "lock",
       "x": 283,
-      "y": 174
+      "y": 169
     }
   ],
   "time": {
-    "hour_x": 110,
-    "minute_x": 250,
-    "colon_x": 230,
-    "y": 201,
+    "hour_x": 109,
+    "minute_x": 251,
+    "colon_x": 229,
+    "y": 196,
     "cell_w": 60,
-    "cell_h": 84,
-    "gap_side": 12.8,
-    "gap_vertical": 8.5
+    "cell_h": 95,
+    "gap_side": 12.0,
+    "gap_vertical": 7.8
   },
   "desc": {
     "x": 110.0,
-    "y": 282,
+    "y": 286,
     "w": 260,
     "h": 34,
     "size": 22
   },
   "desc_img": {
     "x": 110,
-    "y": 282,
+    "y": 286,
     "w": 260,
     "h": 34
   },
@@ -1130,24 +1130,24 @@ export const LAYOUT = {
     "date": {
       "dow": {
         "x": 0.0,
-        "y": 190,
+        "y": 181,
         "w": 100,
-        "h": 33,
-        "size": 21
+        "h": 46,
+        "size": 32
       },
       "day": {
         "x": 0.0,
-        "y": 213,
+        "y": 212,
         "w": 100,
         "h": 57,
         "size": 42
       },
       "month": {
         "x": 0.0,
-        "y": 258,
+        "y": 254,
         "w": 100,
-        "h": 33,
-        "size": 21
+        "h": 46,
+        "size": 32
       }
     },
     "battery": {
@@ -1158,7 +1158,7 @@ export const LAYOUT = {
       },
       "text": {
         "x": 380.0,
-        "y": 226,
+        "y": 229,
         "w": 100,
         "h": 55,
         "size": 40
@@ -1443,10 +1443,10 @@ export const LAYOUT = {
     }
   },
   "default_slots": [
-    "steps",
+    "calories",
     "heart",
     "distance",
-    "calories",
+    "steps",
     "floors",
     "weather"
   ],
@@ -1487,8 +1487,8 @@ export const LAYOUT = {
     "side_value_x": 123.2,
     "width_99999": 102.0,
     "gap_99999_to_divider": 10.8,
-    "time_px": 106,
-    "time_gap_side": 12.8,
-    "time_gap_vertical": 8.5
+    "time_px": 121,
+    "time_gap_side": 12.0,
+    "time_gap_vertical": 7.8
   }
 };
