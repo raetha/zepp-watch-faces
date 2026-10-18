@@ -38,6 +38,19 @@ def paste(canvas, rel, x, y):
     canvas.alpha_composite(im, (int(round(x * S)), int(round(y * S))))
 
 
+def paste_turned(canvas, p):
+    """An IMG with `angle`: the image sits at (pos_x, pos_y) in a w x h box and turns about
+    (center_x, center_y), clockwise for positive angles, as the firmware does."""
+    im = asset(p["src"])
+    w, h = p.get("w", im.width), p.get("h", im.height)
+    box = Image.new("RGBA", (w * S, h * S), (0, 0, 0, 0))
+    box.alpha_composite(im.resize((im.width * S, im.height * S), Image.LANCZOS),
+                        (int(p.get("pos_x", 0) * S), int(p.get("pos_y", 0) * S)))
+    c = (p.get("center_x", w / 2) * S, p.get("center_y", h / 2) * S)
+    box = box.rotate(-p["angle"], resample=Image.BICUBIC, center=c)
+    canvas.alpha_composite(box, (int(round(p.get("x", 0) * S)), int(round(p.get("y", 0) * S))))
+
+
 def draw_text(canvas, p, text):
     if not text:
         return
@@ -115,7 +128,9 @@ def render(dump, scenario, aod=False, edit=False):
         if p.get("show_level", 1) != level_wanted:
             continue
         t = w["type"]
-        if t == "IMG" and p.get("src"):
+        if t == "IMG" and p.get("src") and p.get("angle"):
+            paste_turned(canvas, p)
+        elif t == "IMG" and p.get("src"):
             paste(canvas, p["src"], p.get("x", 0), p.get("y", 0))
         elif t == "IMG_STATUS":
             name = Path(p["src"]).stem

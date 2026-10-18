@@ -172,7 +172,7 @@ jobs:
 
       - name: Add the unlisted test-build page
         run: |
-          pip install qrcode pillow
+          pip install -r tools/requirements.txt
           python3 tools/dev_site.py site "$(git rev-parse --short HEAD)" "$GITHUB_RUN_NUMBER"
           {
             echo "### Test builds (run $GITHUB_RUN_NUMBER)"

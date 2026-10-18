@@ -79,7 +79,6 @@ ICON_PX = 32
 ICON_GAP = 10                             # icon box <-> value box
 VISIBLE_ICON_GAP = 13.5                   # the same gap measured on the drawings (icons sit ~3.5px inside their box)
 LINE_W = 3                                # dividers, separators, band edges (2 was too faint on the watch)
-WEATHER_ICON_PX = 38
 BATTERY_ICON_PX = 34
 
 # ----------------------------------------------------------------------------- colours

@@ -6,7 +6,7 @@ Watch faces for Amazfit watches running Zepp OS, designed for the **Balance 3** 
 
 | | Face | |
 | :---: | --- | :---: |
-| <img src="faces/sextant/screenshots/day.png" width="200"> | **[Sextant](faces/sextant/)**<br>Nautical and data-rich: a navy and brass time bar, five editable complications with compass-tick gauges, automatic red night mode, a mono theme and an outline always-on display. | <img src="faces/sextant/docs/install-qr.png" width="140"><br><sub>scan to install</sub> |
+| <img src="faces/sextant/screenshots/day.png" width="200"> | **[Sextant](faces/sextant/)**<br>Nautical and data-rich: a navy and brass time bar, six editable complications with compass-tick gauges, automatic red night mode, a mono theme and an outline always-on display. | <img src="faces/sextant/docs/install-qr.png" width="140"><br><sub>scan to install</sub> |
 
 ## Installing a face
 

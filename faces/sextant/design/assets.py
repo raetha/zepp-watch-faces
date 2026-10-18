@@ -167,7 +167,8 @@ def make_markers():
             t = K.THEMES[theme]
             img, x0, y0 = marker_image(ang, t["accent"])
             save(img, f"marker/{theme}/m{k}_brass.png")
-            for metric in K.METRICS:
+            # only metrics with a goal fill their gauge past a marker
+            for metric in (m for m, v in K.METRICS.items() if v[2]):
                 save(marker_image(ang, metric_rgb(theme, metric))[0], f"marker/{theme}/m{k}_lit_{metric}.png")
         out.append(dict(k=k, a=ang, x=x0, y=y0))
     return out
@@ -317,8 +318,6 @@ def make_icons():
             svg = METRIC_SVG[metric]("#%02x%02x%02x" % rgb)
             save(centred(svg_to_image(svg, K.ICON_PX), K.ICON_PX), f"icons/{theme}/{metric}.png")
         for i, (kind, _) in enumerate(K.WEATHER):
-            img = retint(svg_to_image(weather_svg(kind), K.WEATHER_ICON_PX), theme, K.THEMES[theme].get("metric"))
-            save(img, f"weather/{theme}/{i}.png")
             small = retint(svg_to_image(weather_svg(kind), K.ICON_PX), theme, K.THEMES[theme].get("metric"))
             save(centred(small, K.ICON_PX), f"icons/{theme}/weather_{i}.png")
             if i == 0:                                   # today's forecast starts on this icon

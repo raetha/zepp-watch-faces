@@ -48,6 +48,10 @@ The version here must match `version.name` in `app.json`; bumping it publishes a
 ### Added
 - First release.
 """)
+# the face's licence names the face and its directory
+lic = (dst / "LICENSE").read_text()
+src_title = json.loads((src / "app.json").read_text())["app"]["appName"]
+(dst / "LICENSE").write_text(lic.replace(f"faces/{a.src}/", f"faces/{a.name}/").replace(src_title, title))
 (dst / "DRAFT").write_text("Delete this file when the face is ready for its first release.\n")
 print(f"created faces/{a.name} (appId {app_id}, marked DRAFT so it is not released yet).")
 print(f"Next: edit faces/{a.name}/design/, then npm run assets && npm test")

@@ -26,9 +26,9 @@ may be shared and remixed but not sold by anyone other than the author.
    Derivatives must use a different name.
 
 4. Fonts: SIL Open Font License 1.1
-   fonts/ and the subset fonts inside each face's assets are Roboto and Roboto
-   Condensed, licensed under the OFL (fonts/OFL-Roboto.txt,
-   fonts/OFL-RobotoCondensed.txt). The OFL permits bundling them in paid apps.
+   fonts/ and the subset fonts inside each face's assets are Roboto Condensed,
+   licensed under the OFL (fonts/OFL-RobotoCondensed.txt). The OFL permits
+   bundling it in paid apps.
 
 The author (raetha) holds the copyright in all original material and may
 distribute any face under other terms, including in paid app stores.

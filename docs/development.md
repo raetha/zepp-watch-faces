@@ -7,7 +7,7 @@ This is the canonical guide for the repository. Read it before changing anything
 | Path | What it is |
 | --- | --- |
 | `faces/<face>/app.json`, `app.js` | Zepp OS manifest and app entry for one face (watch face, API level 4.2). |
-| `faces/<face>/watchface/index.js` | The face's code: edit groups, widgets per theme, updates. |
+| `faces/<face>/watchface/index.js` | The face's entry: passes its layout to the face code. Sextant's code (edit groups, widgets per theme, updates) is `faces/sextant/watchface/sextant.js`, shared with Twisted Sextant. |
 | `faces/<face>/watchface/layout.generated.js` | **Generated.** Every coordinate, colour and size the face uses. |
 | `faces/<face>/assets/common.r/` | **Generated.** PNGs plus the subset font for text widgets. `icon.png` and `cover.png` come from `npm run screenshots` (the emulator's `day.png`). |
 | `faces/<face>/design/` | The face's generator: `config.py` (design constants), `geometry.py`, `assets.py`, `generate.py`. |
@@ -20,7 +20,7 @@ This is the canonical guide for the repository. Read it before changing anything
 | `lib/py/zfkit/` | Shared generator helpers: `fonts.py` (instancing, subsetting, text-box maths), `icons.py` (original icon artwork). |
 | `tools/emu/` | Runs faces on the real Zepp OS firmware in QEMU (see "Testing on the emulator"). |
 | `tools/` | `generate.py` (all faces), `harness/` (offline runner), `preview.py`, `make_covers.py`, `make_qr.py`, `extract_zpk.py`, `build_site.py`, `new_face.py`, and the release helpers `release_plan.py`, `changelog.py`, `release_notes.py`. |
-| `fonts/` | OFL variable fonts (Roboto, Roboto Condensed) and their licences. |
+| `fonts/` | The OFL variable font Roboto Condensed and its licence. |
 
 Faces import shared JS with relative paths, for example `import { isNight } from '../../../lib/js/sun';`. Zeus bundles these when building the face.
 
@@ -69,7 +69,7 @@ If more than one face needs a piece of code, move it to `lib/js/` or `lib/py/zfk
 
 - **API level 4.2** (`app.json` → `runtime.apiVersion`). The face imports `@zos/ui`, `@zos/sensor`, `@zos/settings` and `@zos/utils`, and lists a permission for each health sensor it reads (`data:user.hd.step` and so on). 4.2 is the highest level the emulator runs (Balance 2 image); the Balance 3 itself is 4.4. **When Zepp publishes a Balance 3 emulator image, move to 4.4 (or whatever is then current)**, retest and update this note.
 
-- **Edit groups** are created once in `build()`: five complication slots, a theme picker (Color / Mono) over the date, and a night-mode switch (Auto / Off) over the time. They use custom edit types (`100001+`), so any metric can go in any slot.
+- **Edit groups** are created once in `build()`: six complication slots (Twisted Sextant: five, with weather fixed at the top), a theme picker (Color / Mono) over the date, and a night-mode switch (Auto / Off) over the time. They use custom edit types (`100001+`), so any metric can go in any slot.
 - **`render(theme)`** creates every visible widget for `color`, `mono` or `night`. Night runs from sunset to sunrise (forecast sun data, or 19:00–07:00 until that exists). On a theme change, the rendered widgets are deleted and recreated. Sensors, listeners and the `WIDGET_DELEGATE` are created once and never deleted.
 - **Weather**: as a complication (default top-middle), the icon is an `IMG_LEVEL` bound to `WEATHER_CURRENT` and the temperature is a bound `TEXT_FONT`. The condition text under the time is another `IMG_LEVEL`, with one image per condition. The condition names are pre-rendered text images. Face code can't read the current condition, so this is the only way to show it.
 - **Arc angles are whole degrees.** The firmware truncates `start_angle`, `end_angle` and the level-filled end to whole degrees, and arcs under 1° don't draw. `geometry.tick_arc()` gives each tick integer angles, extending away from the nearer centre-line point, so the bezel is symmetric both ways. The preview truncates the same way.
@@ -79,7 +79,7 @@ If more than one face needs a piece of code, move it to `lib/js/` or `lib/py/zfk
 - **Metrics** are defined once in `lib/js/metrics.js`: `METRIC_IDS` is the editor order, and `METRIC_TYPE` gives each metric a fixed editor type number (100001 + n), so reordering or adding metrics never changes what a saved slot shows. Add new metrics at the end of `METRIC_TYPE`. Each metric also needs a colour and title in `design/config.py` (`METRICS`), an icon in `lib/py/zfkit/icons.py`, a sample in the edit previews, and a permission in `app.json` if its sensor needs one. Units drawn small after the value are listed in `UNIT_CHARS`. Moon phase is computed from the date (`lib/js/moon.js`). The compass only runs while a slot shows it and the face is on screen: it starts in `build()` and `resume_call` and stops in `pause_call` and `onDestroy()`. The always-on screen builds the face too, so the start is skipped when `getScene()` (`@zos/app`) is `SCENE_AOD`; on the emulator, going always-on ends with the compass stopped.
 - **Tap to open an app:** each complication gets a transparent `IMG` over its edit box with `CLICK_DOWN` / `CLICK_UP` listeners that call `launchApp({ appId: SYSTEM_APP_..., native: true })` (`@zos/router`; the map is `METRIC_APP` in `lib/js/metrics.js`). Only a quick, still tap counts (`TAP_MAX_MS`, `TAP_MAX_MOVE`), so long presses and swipes behave as before. The tap areas must be created last in `render()`: any widget created after them, even an always-on one that isn't showing, takes the taps. The emulator delivers the taps and calls the launcher, but its image has no system apps installed (`amFindHashData ... failed`), so the apps themselves only open on a watch.
 - **Editor:** the firmware draws it. Tapping a selected box steps to the next option, and swiping up or down on it (or turning the crown) scrolls through them. A face can't replace it with a full-screen list.
-- **Text** is `TEXT` / `TEXT_FONT` with the bundled Roboto Condensed. The time is `IMG_TIME` with pre-rendered fixed-width digits (Roboto Regular, size solved from `TIME_SIDE_GAP`, currently 106px, brass gradient).
+- **Text** is `TEXT` / `TEXT_FONT` with the bundled Roboto Condensed. The time is `IMG_TIME` with pre-rendered fixed-width digits (Roboto Condensed, size solved from `TIME_SIDE_GAP`, currently 121px, brass gradient).
 - **Always-on** widgets use `show_level: ONLY_AOD`: outline digits, date and battery.
 
 ## Testing on the emulator
@@ -158,7 +158,7 @@ The firmware log, including the face's `console.log` output, is in `tools/.emu/s
 - **Packages:** a `.zab` holds one `.zpk` per screen and chip. Sextant's first test builds installed the 454×454 build, because `extract_zpk.py` took the first one. That made the face about 5% small and anchored top-left, which is why the time looked too small and the right-hand dividers sat too far in. `extract_zpk.py` now picks the package by device ID, defaulting to the Balance 3 (11141376).
 - **Arc angles:** truncated to whole degrees (see above). This was the cause of the north marker crowding the tick to its right.
 - **Text:** the firmware matches the line-box model in `text_box_for_ink_centre()` to within half a pixel, as long as boxes sit on whole pixels. Fractional `y` values were being rounded about 1–2px low. `FIRMWARE_TEXT_DY` in `lib/py/zfkit/fonts.py` is the calibration term, and it's 0.
-- **Arcs:** `radius` is the centre of the stroke (`ARC_RADIUS_IS_CENTER = true`). The ticks match the offline renders exactly.
+- **Arcs:** `radius` is the centre of the stroke (the ticks use `r_center`). The ticks match the offline renders exactly.
 - **Weather:** face code can only read the forecast (per-day high, low and condition index, plus sun and moon times), at API level 1 and at 4.2. The 4.2 firmware names the call `getForecast()`, while the typings still say `getForecastWeather()`; `lib/js/sun.js` uses whichever exists. The current condition and temperature are only available to bound widgets, so the icon and the condition text are both `IMG_LEVEL` widgets bound to `WEATHER_CURRENT`.
 - **API level 4.2** (migrated October 2026): the `@zos/*` modules are on the firmware with the same widget set and data types as API level 1 (`IMG_TIME`, `IMG_STATUS`, `IMG_LEVEL`, `TEXT_FONT`, `WATCHFACE_EDIT_GROUP`, `WIDGET_DELEGATE`). A sensor read without its permission in `app.json` throws "permission denied". `IMG` takes `angle` with `center_x` / `center_y` and the firmware rotates the image.
 - **Edit mode** hides every normal widget and draws only `ONLY_EDIT` widgets and the edit groups, in creation order. So an edit-mode backdrop has to be created before the edit groups.
@@ -172,7 +172,7 @@ Still to check on a real watch: **distance units** (`getDistanceUnit()`), °F fo
 
 A watch face can't receive anything from the phone. The Zepp app's Settings App reaches the watch only through a Side Service, and watch faces don't support one. The workaround, if a suite of faces ever justifies it:
 - **Companion mini app:** a separate app with the Settings App and Side Service. It writes the choices to a file in its own storage on the watch.
-- **The face:** reads that file with `hmFS.open(name, hmFS.O_RDONLY, { appid: <companion appId> })`. Example: [zeppos-autogui wf-app-comms](https://github.com/silver-zepp/zeppos-autogui/tree/master/other-autogui-examples/zeppos-3.0-wf-app-comms).
+- **The face:** reads that file with `@zos/fs` (`openSync` with the companion's `appId`). Example: [zeppos-autogui wf-app-comms](https://github.com/silver-zepp/zeppos-autogui/tree/master/other-autogui-examples/zeppos-3.0-wf-app-comms).
 - **Drawbacks:** it's two installs, and the face can't update its own editor's selections, so the two would need a rule like "the most recent change wins".
 
 ## Sextant's design is locked
@@ -225,8 +225,8 @@ Each face has its own `appId`, outside the developer-preview range, so QR instal
 
 ## Packaging for delivery
 
-Deliver the whole repo tree as a zip, excluding build output:
+Sessions normally commit and push. When a session has only read access, deliver the whole repo tree as a zip instead, excluding build output:
 
 ```bash
-zip -r zepp-watch-faces.zip . -x ".git/*" "node_modules/*" "*/dist/*" "tools/.build/*" "tools/.emu/*" "*/__pycache__/*" "site/*" "release/*" "out/*" "out-dev/*" "faces/*-dev/*"
+zip -r zepp-watch-faces.zip . -x ".git/*" "node_modules/*" "*/dist/*" "tools/.build/*" "tools/.emu/*" "*/__pycache__/*" "site/*" "release/*" "out/*" "out-dev/*" "faces/*-dev/*" "faces/*/previews/*"
 ```

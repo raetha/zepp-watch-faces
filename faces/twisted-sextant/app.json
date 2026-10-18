@@ -13,7 +13,7 @@
     "cover": [
       "cover.png"
     ],
-    "description": "Twisted Sextant watch face. Source: https://github.com/raetha/zepp-watch-faces"
+    "description": "Twisted Sextant: Sextant with its corner complications turned along their gauges, automatic red night mode and a mono theme. Source: https://github.com/raetha/zepp-watch-faces"
   },
   "runtime": {
     "apiVersion": {

@@ -1,8 +1,8 @@
 """Shared font instancing, subsetting and measurement (used by every face).
 
-The repo ships the OFL variable fonts in /fonts. We cut static instances from them:
-  - Roboto Regular (normal width) for the time digits (rendered to images)
-  - Roboto Condensed Regular for all other text (bundled as a TTF for TEXT widgets)
+The repo ships the OFL variable font Roboto Condensed in /fonts. We cut a static Regular
+instance from it, used for the time digits (rendered to images) and for all other text
+(bundled, subset, as a TTF for TEXT widgets).
 """
 from functools import lru_cache
 from pathlib import Path
@@ -14,7 +14,6 @@ from PIL import ImageFont, Image, ImageDraw
 REPO = Path(__file__).resolve().parents[3]
 FONT_DIR = REPO / "fonts"
 BUILD = REPO / "tools" / ".build"
-TIME_FONT = BUILD / "Roboto-Regular.ttf"
 TEXT_FONT = BUILD / "RobotoCondensed-Regular.ttf"
 TEXT_FONT_SUBSET_NAME = "RobotoCondensed-Regular.ttf"
 
@@ -27,9 +26,6 @@ WATCH_CHARSET = (
 
 def build_fonts():
     BUILD.mkdir(parents=True, exist_ok=True)
-    if not TIME_FONT.exists():
-        f = TTFont(FONT_DIR / "Roboto[wdth,wght].ttf")
-        instantiateVariableFont(f, {"wdth": 100, "wght": 400}).save(TIME_FONT)
     if not TEXT_FONT.exists():
         f = TTFont(FONT_DIR / "RobotoCondensed[wght].ttf")
         instantiateVariableFont(f, {"wght": 400}).save(TEXT_FONT)
@@ -41,7 +37,7 @@ def write_watch_font(dest: Path):
     opts.layout_features = ["kern", "liga", "tnum"]
     opts.name_IDs = ["*"]
     opts.notdef_outline = True
-    font = TTFont(TEXT_FONT)
+    font = TTFont(TEXT_FONT, recalcTimestamp=False)   # same bytes on every build
     sub = ft_subset.Subsetter(opts)
     sub.populate(text=WATCH_CHARSET)
     sub.subset(font)

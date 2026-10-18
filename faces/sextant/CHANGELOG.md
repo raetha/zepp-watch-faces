@@ -23,6 +23,7 @@ All notable changes to the Sextant watch face. The format follows
 - Built on Zepp OS API level 4.2 (was 1.0). Stand, fat burning, blood oxygen and stress are now read directly, so stand and fat burning light their gauges towards their daily goals.
 
 ### Fixed
+- Less work on the watch: values are only redrawn when they change, the always-on screen ignores sensor updates, and sleep data is refreshed at most every 10 minutes.
 - Icons are centred in their boxes, and the battery icon has the same gap to its percentage as the complications.
 - A value with a comma (like 12,486) above its icon no longer crowds the icon.
 

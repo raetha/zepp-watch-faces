@@ -49,7 +49,7 @@ The decisions behind the layout, so future changes keep the same logic. All numb
 ## Colour
 
 - **Colour theme:** navy band, brass accents (214,172,96), brass time gradient. Metric colours: steps green, heart red, distance blue, calories orange, floors violet, and so on.
-- **Night theme:** everything deep red on pure black, with no band fill (only its red edge lines) (text contrast ≈5.3:1, the practical limit for pure red).
+- **Night theme:** everything deep red on pure black, with no band fill (only its red edge lines) (main text contrast 4.8:1, about the practical limit for pure red).
 - **Mono theme:** white and greys on black.
 
 ## Twisted Sextant

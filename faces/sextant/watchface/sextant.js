@@ -4,7 +4,7 @@
  * Sextant watch face for Zepp OS (API level 4.2: @zos/ui, @zos/sensor, @zos/settings).
  *
  * Structure
- *  - Edit groups are created once in build(): five complication slots, a theme
+ *  - Edit groups are created once in build(): six complication slots, a theme
  *    picker (Color / Mono) and a night-mode switch (Auto / Off).
  *  - render(theme) creates every visible widget for one theme. When the theme
  *    changes (night mode turns on at sunset, off at sunrise) the rendered widgets
@@ -116,22 +116,27 @@ export function sextantFace(L) {
     },
 
     /** The compass only runs while a slot shows it and the face is on screen. */
-  compassOn(on) {
-    if (this.settings.slots.indexOf('compass') < 0) return;
-    // the always-on screen builds the face too, but never shows the compass
-    if (on && typeof getScene === 'function' && getScene() === SCENE_AOD) return;
-    const c = this.sensor('COMPASS');
-    if (!c) return;
-    try {
-      if (on) c.start();
-      else c.stop();
-    } catch (e) {
-      // not available on this watch
-    }
-  },
+    compassOn(on) {
+      if (this.settings.slots.indexOf('compass') < 0) return;
+      // the always-on screen builds the face too, but never shows the compass
+      if (on && this.isAod()) return;
+      const c = this.sensor('COMPASS');
+      if (!c) return;
+      try {
+        if (on) c.start();
+        else c.stop();
+      } catch (e) {
+        // not available on this watch
+      }
+    },
 
-  onDestroy() {
-    this.compassOn(false);
+    /** True in the always-on screen's instance of the face. */
+    isAod() {
+      return typeof getScene === 'function' && getScene() === SCENE_AOD;
+    },
+
+    onDestroy() {
+      this.compassOn(false);
       this.unsubscribe && this.unsubscribe();
     },
 
@@ -153,18 +158,21 @@ export function sextantFace(L) {
         this.update();
       };
       // at most one refresh a second (the compass and barometer report often)
-    let last = 0;
-    const onChange = () => {
-      const t = Date.now();
-      if (t - last < 1000) return;
-      last = t;
-      this.update();
-    };
+      let last = 0;
+      const onChange = () => {
+        // the always-on screen shows only the time, date and battery: the minute tick is enough
+        if (this.isAod()) return;
+        const t = Date.now();
+        if (t - last < 1000) return;
+        last = t;
+        this.update();
+      };
       const subs = [];
       if (this.timeSensor) {
         this.timeSensor.onPerMinute(onMinute);
         subs.push(() => this.timeSensor.offPerMinute && this.timeSensor.offPerMinute(onMinute));
       }
+
       const watched = new Set(['BATTERY']);
       this.settings.slots.forEach((id) => {
         const def = SENSOR_METRICS[id];
@@ -451,7 +459,7 @@ export function sextantFace(L) {
         hour: t.getHours(), minute: t.getMinutes(), day: t.getDate(), month: t.getMonth(),
         // 1 = Monday ... 7 = Sunday (0 is also taken as Sunday)
         week: ((t.getDay() + 6) % 7) + 1,
-      ms: t.getTime(),
+        ms: t.getTime(),
       };
     },
 
@@ -479,7 +487,8 @@ export function sextantFace(L) {
       dyn.battery.setProperty(hmUI.prop.TEXT, `${level}%`);
       dyn.aodBattery.setProperty(hmUI.prop.TEXT, `${level}%`);
 
-      // complications
+      // complications (the always-on screen shows none)
+      if (this.isAod()) return;
       const ctx = {
         time,
         is12h: getTimeFormat() === TIME_FORMAT_12,
@@ -500,13 +509,19 @@ export function sextantFace(L) {
         // DEMO_VALUES (mock-ups on the emulator only, never in a release build)
         if (L.demo_values && L.demo_values[slot.id]) r = L.demo_values[slot.id];
         this.setValue(i, slot, r, C);
-        if (r.icon) slot.icon.setProperty(hmUI.prop.SRC, `${slot.iconDir}/${r.icon}.png`);
+        if (r.icon && r.icon !== slot.iconShown) {
+          slot.iconShown = r.icon;
+          slot.icon.setProperty(hmUI.prop.SRC, `${slot.iconDir}/${r.icon}.png`);
+        }
         if (slot.progress) this.setTicks(slot, r.progress);
       });
     },
 
     /** Turned corners: lay the value (and unit) glyph images along the gauge's direction. */
     setRotValue(slot, r) {
+      const key = `${r.text}|${r.unit || ''}`;
+      if (slot.shown === key) return;          // nothing changed
+      slot.shown = key;
       const R = slot.rot;
       const cw = L.char_widths;
       const items = [];
@@ -538,6 +553,9 @@ export function sextantFace(L) {
         this.setRotValue(slot, r);
         return;
       }
+      const key = `${r.text}|${r.unit || ''}`;
+      if (slot.shown === key) return;          // nothing changed
+      slot.shown = key;
       const box = L.slots[i];
       slot.value.setProperty(hmUI.prop.TEXT, r.text);
       if (!r.unit) {

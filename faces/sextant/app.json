@@ -13,7 +13,7 @@
     "cover": [
       "cover.png"
     ],
-    "description": "Sextant: a nautical, data-rich watch face with five editable complications, automatic red night mode and a mono theme. Source: https://github.com/raetha/zepp-watch-faces"
+    "description": "Sextant: a nautical, data-rich watch face with six editable complications, compass-tick gauges, automatic red night mode and a mono theme. Source: https://github.com/raetha/zepp-watch-faces"
   },
   "runtime": {
     "apiVersion": {
