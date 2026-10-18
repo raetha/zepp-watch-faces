@@ -17,12 +17,22 @@
   },
   "runtime": {
     "apiVersion": {
-      "compatible": "1.0.0",
-      "target": "1.0.1",
-      "minVersion": "1.0.0"
+      "compatible": "4.2",
+      "target": "4.2",
+      "minVersion": "4.2"
     }
   },
-  "permissions": [],
+  "permissions": [
+    "data:user.hd.step",
+    "data:user.hd.calorie",
+    "data:user.hd.heart_rate",
+    "data:user.hd.distance",
+    "data:user.hd.pai",
+    "data:user.hd.stand",
+    "data:user.hd.fat_burning",
+    "data:user.hd.spo2",
+    "data:user.hd.stress"
+  ],
   "targets": {
     "common": {
       "module": {

@@ -6,7 +6,7 @@ This is the canonical guide for the repository. Read it before changing anything
 
 | Path | What it is |
 | --- | --- |
-| `faces/<face>/app.json`, `app.js` | Zepp OS manifest and app entry for one face (watch face, API level 1.0). |
+| `faces/<face>/app.json`, `app.js` | Zepp OS manifest and app entry for one face (watch face, API level 4.2). |
 | `faces/<face>/watchface/index.js` | The face's code: edit groups, widgets per theme, updates. |
 | `faces/<face>/watchface/layout.generated.js` | **Generated.** Every coordinate, colour and size the face uses. |
 | `faces/<face>/assets/common.r/` | **Generated.** PNGs plus the subset font for text widgets. `icon.png` and `cover.png` come from `npm run screenshots` (the emulator's `day.png`). |
@@ -36,7 +36,7 @@ npm install -g @zeppos/zeus-cli           # only needed to build/preview on a wa
 
 1. Change a face's design constants in `faces/<face>/design/config.py`, or its drawing code.
 2. `npm run assets` (or `python3 faces/<face>/design/generate.py`) regenerates its assets and `layout.generated.js`.
-3. `npm test` runs every scenario of every face through the real watch-face code against stubbed Zepp OS globals. It fails on:
+3. `npm test` runs every scenario of every face through the real watch-face code against stubbed Zepp OS modules (`@zos/ui`, `@zos/sensor`, `@zos/settings`, `@zos/utils`). It fails on:
    - runtime errors,
    - missing assets,
    - the wrong theme for a scenario (a scenario's `expect_theme`, default `color`).
@@ -65,13 +65,15 @@ If more than one face needs a piece of code, move it to `lib/js/` or `lib/py/zfk
 
 ## How Sextant is built (reference for new faces)
 
+- **API level 4.2** (`app.json` → `runtime.apiVersion`). The face imports `@zos/ui`, `@zos/sensor`, `@zos/settings` and `@zos/utils`, and lists a permission for each health sensor it reads (`data:user.hd.step` and so on). 4.2 is the highest level the emulator runs (Balance 2 image); the Balance 3 itself is 4.4. **When Zepp publishes a Balance 3 emulator image, move to 4.4 (or whatever is then current)**, retest and update this note.
+
 - **Edit groups** are created once in `build()`: five complication slots, a theme picker (Color / Mono) over the date, and a night-mode switch (Auto / Off) over the time. They use custom edit types (`100001+`), so any metric can go in any slot.
 - **`render(theme)`** creates every visible widget for `color`, `mono` or `night`. Night runs from sunset to sunrise (forecast sun data, or 19:00–07:00 until that exists). On a theme change, the rendered widgets are deleted and recreated. Sensors, listeners and the `WIDGET_DELEGATE` are created once and never deleted.
 - **Weather**: as a complication (default top-middle), the icon is an `IMG_LEVEL` bound to `WEATHER_CURRENT` and the temperature is a bound `TEXT_FONT`. The condition text under the time is another `IMG_LEVEL`, with one image per condition. The condition names are pre-rendered text images. Face code can't read the current condition, so this is the only way to show it.
 - **Arc angles are whole degrees.** The firmware truncates `start_angle`, `end_angle` and the level-filled end to whole degrees, and arcs under 1° don't draw. `geometry.tick_arc()` gives each tick integer angles, extending away from the nearer centre-line point, so the bezel is symmetric both ways. The preview truncates the same way.
 - **Gauges**: every tick is its own short `ARC_PROGRESS` (one per 2°, coloured dim or lit), so nothing depends on how the firmware layers arcs over images. An earlier overlay-mask approach failed on the Balance 3: arcs drew on top of the mask.
-  - Sensor metrics (steps, calories, PAI) light the first round(progress × N) ticks in fill order.
-  - System-bound metrics (floors, stand, fat burning, …) show their value through `TEXT_FONT`, but API level 1 has no sensor to read their progress from, so their ticks stay dim.
+  - Sensor metrics with a goal (steps, calories, PAI, stand, fat burning) light the first round(progress × N) ticks in fill order.
+  - System-bound metrics (floors, current weather, UV, humidity, air quality) have no sensor at API level 4.2. They show their value through `TEXT_FONT`, and the face can't read the number, so floors' ticks stay dim.
 - **Text** is `TEXT` / `TEXT_FONT` with the bundled Roboto Condensed. The time is `IMG_TIME` with pre-rendered fixed-width digits (Roboto Regular, size solved from `TIME_SIDE_GAP`, currently 106px, brass gradient).
 - **Always-on** widgets use `show_level: ONLY_AOD`: outline digits, date and battery.
 
@@ -141,7 +143,7 @@ Only shots the READMEs or the install site use are kept. A full Sextant set take
 
 **Emulator limits:**
 - `zeus build` converts images to the watch's own compressed format, which the emulator can't decode. `tools/emu/prepare.py` swaps the original PNGs back in, for the emulator only.
-- The distance sensor always reads 0, and PAI reads 0.
+- Test values (`set`) reach steps, calories, heart rate and battery through `@zos/sensor`, and every bound widget. Distance, PAI, stand, fat burning, blood oxygen and stress read 0 through `@zos/sensor` even when set (their bound widgets do show the values), so check those on a real watch.
 - The weather location is fixed (Beijing data: sunset 17:55). Weather values only update when they change.
 
 The firmware log, including the face's `console.log` output, is in `tools/.emu/serial.log`. Watch state persists in `tools/.emu/flash.bin`.
@@ -152,13 +154,14 @@ The firmware log, including the face's `console.log` output, is in `tools/.emu/s
 - **Arc angles:** truncated to whole degrees (see above). This was the cause of the north marker crowding the tick to its right.
 - **Text:** the firmware matches the line-box model in `text_box_for_ink_centre()` to within half a pixel, as long as boxes sit on whole pixels. Fractional `y` values were being rounded about 1–2px low. `FIRMWARE_TEXT_DY` in `lib/py/zfkit/fonts.py` is the calibration term, and it's 0.
 - **Arcs:** `radius` is the centre of the stroke (`ARC_RADIUS_IS_CENTER = true`). The ticks match the offline renders exactly.
-- **Weather:** `curAirIconIndex` doesn't exist on API level 1. Face code can only read the forecast (`getForecastWeather()`: per-day high, low and condition index, plus sun and moon times). The current condition is only available to bound widgets, so the icon and the condition text are both `IMG_LEVEL` widgets bound to `WEATHER_CURRENT`.
+- **Weather:** face code can only read the forecast (per-day high, low and condition index, plus sun and moon times), at API level 1 and at 4.2. The 4.2 firmware names the call `getForecast()`, while the typings still say `getForecastWeather()`; `lib/js/sun.js` uses whichever exists. The current condition and temperature are only available to bound widgets, so the icon and the condition text are both `IMG_LEVEL` widgets bound to `WEATHER_CURRENT`.
+- **API level 4.2** (migrated October 2026): the `@zos/*` modules are on the firmware with the same widget set and data types as API level 1 (`IMG_TIME`, `IMG_STATUS`, `IMG_LEVEL`, `TEXT_FONT`, `WATCHFACE_EDIT_GROUP`, `WIDGET_DELEGATE`). A sensor read without its permission in `app.json` throws "permission denied". `IMG` takes `angle` with `center_x` / `center_y` and the firmware rotates the image.
 - **Edit mode** hides every normal widget and draws only `ONLY_EDIT` widgets and the edit groups, in creation order. So an edit-mode backdrop has to be created before the edit groups.
 - **Custom edit types**, 12-hour mode, status icons, battery bands and automatic night mode all work as designed.
 
 - **Always-on screen**, with the setting on and following the watch face, shows the outline time, date and battery.
 
-Still to check on a real watch: **distance units** (`hmSetting.getMileageUnit()`, 1 = miles).
+Still to check on a real watch: **distance units** (`getDistanceUnit()`), and the readings of distance, PAI, stand, fat burning, blood oxygen and stress, which the emulator can't feed (see the emulator limits). If those read 0 on a watch, those metrics can go back to bound widgets in `lib/js/metrics.js`.
 
 ## Phone-side settings (not built)
 

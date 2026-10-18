@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2026 raetha. Licensed CC BY-NC-SA 4.0 (see faces/sextant/LICENSE).
  *
- * Sextant watch face for Zepp OS (API level 1 globals: hmUI / hmSensor / hmSetting).
+ * Sextant watch face for Zepp OS (API level 4.2: @zos/ui, @zos/sensor, @zos/settings).
  *
  * Structure
  *  - Edit groups are created once in build(): five complication slots, a theme
@@ -12,6 +12,12 @@
  *  - All coordinates come from layout.generated.js, produced by
  *    faces/sextant/design/generate.py together with the image assets.
  */
+import * as hmUI from '@zos/ui';
+import {
+  Time, Battery, Step, Calorie, HeartRate, Distance, Pai, Weather, Stand, FatBurning, BloodOxygen, Stress,
+} from '@zos/sensor';
+import { getTimeFormat, getDistanceUnit, TIME_FORMAT_12, DISTANCE_UNIT_IMPERIAL } from '@zos/settings';
+import { px } from '@zos/utils';
 import { LAYOUT as L } from './layout.generated';
 import { METRIC_IDS, SENSOR_METRICS, BOUND_METRICS } from '../../../lib/js/metrics';
 import { isNight } from '../../../lib/js/sun';
@@ -49,8 +55,14 @@ const NIGHT_TYPES = [
 ];
 
 function px_(v) {
-  return typeof px === 'function' ? px(v) : v;
+  return px(v);
 }
+
+/** Sensor classes by the names lib/js/metrics.js uses. */
+const SENSORS = {
+  TIME: Time, BATTERY: Battery, STEP: Step, CALORIE: Calorie, HEART: HeartRate, DISTANCE: Distance,
+  PAI: Pai, WEATHER: Weather, STAND: Stand, FAT_BURNING: FatBurning, SPO2: BloodOxygen, STRESS: Stress,
+};
 
 WatchFace({
   build() {
@@ -86,9 +98,12 @@ WatchFace({
 
   // ---------------------------------------------------------------- sensors
   sensor(name) {
-    if (!this.sensors[name]) {
-      const id = hmSensor.id[name];
-      this.sensors[name] = id === undefined ? null : hmSensor.createSensor(id);
+    if (this.sensors[name] === undefined) {
+      try {
+        this.sensors[name] = SENSORS[name] ? new SENSORS[name]() : null;
+      } catch (e) {
+        this.sensors[name] = null;   // e.g. a missing permission
+      }
     }
     return this.sensors[name];
   },
@@ -100,9 +115,9 @@ WatchFace({
     };
     const onChange = () => this.update();
     const subs = [];
-    if (this.timeSensor && this.timeSensor.addEventListener) {
-      this.timeSensor.addEventListener(this.timeSensor.event.MINUTEEND, onMinute);
-      subs.push(() => this.timeSensor.removeEventListener(this.timeSensor.event.MINUTEEND, onMinute));
+    if (this.timeSensor) {
+      this.timeSensor.onPerMinute(onMinute);
+      subs.push(() => this.timeSensor.offPerMinute && this.timeSensor.offPerMinute(onMinute));
     }
     const watched = new Set(['BATTERY']);
     this.settings.slots.forEach((id) => {
@@ -111,11 +126,13 @@ WatchFace({
     });
     watched.forEach((name) => {
       const s = this.sensor(name);
-      if (!s || !s.addEventListener) return;
+      if (!s) return;
       const def = Object.values(SENSOR_METRICS).find((d) => d.sensor === name);
-      const ev = def && def.event ? hmSensor.event[def.event] : hmSensor.event.CHANGE;
-      s.addEventListener(ev, onChange);
-      subs.push(() => s.removeEventListener && s.removeEventListener(ev, onChange));
+      // heart rate reports its last measurement; the others report changes
+      const [on, off] = def && def.event === 'LAST' ? ['onLastChange', 'offLastChange'] : ['onChange', 'offChange'];
+      if (typeof s[on] !== 'function') return;
+      s[on](onChange);
+      subs.push(() => typeof s[off] === 'function' && s[off](onChange));
     });
     this.unsubscribe = () => subs.forEach((f) => f());
   },
@@ -153,7 +170,7 @@ WatchFace({
 
   // ---------------------------------------------------------------- theme
   wantedTheme() {
-    if (this.settings.night === 'auto' && isNight(this.weatherSensor, this.timeSensor)) return 'night';
+    if (this.settings.night === 'auto' && isNight(this.weatherSensor, this.now())) return 'night';
     return this.settings.theme;
   },
 
@@ -347,11 +364,21 @@ WatchFace({
     });
   },
 
+  /** The current time as plain fields (the shape lib/js expects). */
+  now() {
+    const t = this.timeSensor;
+    return {
+      hour: t.getHours(), minute: t.getMinutes(), day: t.getDate(), month: t.getMonth(),
+      // 1 = Monday ... 7 = Sunday (0 is also taken as Sunday)
+      week: ((t.getDay() + 6) % 7) + 1,
+    };
+  },
+
   // ---------------------------------------------------------------- updates
   update() {
     const dyn = this.dyn;
     if (!dyn) return;
-    const time = this.timeSensor;
+    const time = this.now();
     const theme = this.theme;
     const C = L.colors[theme];
 
@@ -365,7 +392,7 @@ WatchFace({
     });
 
     // battery
-    const level = this.batterySensor ? this.batterySensor.current || 0 : 0;
+    const level = this.batterySensor ? this.batterySensor.getCurrent() || 0 : 0;
     const band = level > 40 ? 'high' : level > 20 ? 'mid' : 'low';
     dyn.batteryIcon.setProperty(hmUI.prop.SRC, `battery/${theme}/${band}.png`);
     dyn.battery.setProperty(hmUI.prop.TEXT, `${level}%`);
@@ -374,14 +401,19 @@ WatchFace({
     // complications
     const ctx = {
       time,
-      is12h: hmSetting.getTimeFormat() === 0,
-      imperial: typeof hmSetting.getMileageUnit === 'function' && hmSetting.getMileageUnit() === 1,
+      is12h: getTimeFormat() === TIME_FORMAT_12,
+      imperial: getDistanceUnit() === DISTANCE_UNIT_IMPERIAL,
     };
     dyn.slots.forEach((slot, i) => {
       const def = SENSOR_METRICS[slot.id];
       if (!def) return;
       const sensor = this.sensor(def.sensor);
-      const r = sensor ? def.read(sensor, ctx) : { text: '--', progress: null };
+      let r = { text: '--', progress: null };
+      try {
+        if (sensor) r = def.read(sensor, ctx);
+      } catch (e) {
+        // keep the placeholder
+      }
       this.setValue(i, slot, r, C);
       if (r.icon) slot.icon.setProperty(hmUI.prop.SRC, `${slot.iconDir}/${r.icon}.png`);
       if (slot.progress) this.setTicks(slot, r.progress);

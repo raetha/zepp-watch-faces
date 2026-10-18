@@ -26,7 +26,7 @@ The QR code always installs the latest release (see the [changelog](CHANGELOG.md
 | **Always-on** | **Other complications** | **Edit mode** |
 | <img src="screenshots/day_aod.png" width="250"> | <img src="screenshots/alt.png" width="250"> | <img src="screenshots/day_edit.png" width="250"> |
 
-All screenshots are taken on the real Zepp OS firmware (Amazfit Balance 2 emulator image). The emulator's distance sensor always reads 0.
+All screenshots are taken on the real Zepp OS firmware (Amazfit Balance 2 emulator image). The emulator can't feed test values to some sensors (distance, PAI, stand, blood oxygen), so those show 0 or -- in the screenshots.
 
 ## Features
 

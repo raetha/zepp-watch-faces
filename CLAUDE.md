@@ -32,7 +32,9 @@ Zepp OS watch faces for the Amazfit Balance 3 (480×480 round). Sextant is the f
 
 - A `.zab` holds one `.zpk` per screen and chip. `tools/extract_zpk.py` must pick by device ID (Balance 3 = 11141376), not take the first one.
 - The emulator can't decode `zeus build`'s compressed images. `tools/emu/prepare.py` swaps the PNGs back in.
-- API level 1 face code can't read the current weather. Use `IMG_LEVEL` bound to `WEATHER_CURRENT`.
+- Faces target API level 4.2 (`@zos/*` modules), the highest the Balance 2 emulator image runs. **When Zepp publishes a Balance 3 emulator image, move to 4.4 (or whatever is current).**
+- Face code can't read floors, the current weather, UV, humidity or air quality at any API level. They're bound widgets (`TEXT_FONT` / `IMG_LEVEL` with a data type).
+- The emulator only feeds test values to steps, calories, heart rate and battery reads; distance, PAI, stand, fat burning, blood oxygen and stress read 0 there.
 - Text boxes must sit on whole pixels. Arc `radius` is the centre of the stroke.
 - Arc angles are truncated to whole degrees, and arcs under 1° don't draw. Ticks use `geometry.tick_arc()`.
 - Edit mode shows only `ONLY_EDIT` widgets and the edit groups, in creation order.

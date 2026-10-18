@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Offline test harness: runs watchface/index.js against stubbed Zepp OS globals
- * (hmUI / hmSensor / hmSetting / WatchFace), then dumps the live widget tree as JSON.
+ * Offline test harness: runs watchface/index.js against stubbed Zepp OS modules
+ * (@zos/ui, @zos/sensor, @zos/settings, @zos/utils and the WatchFace global), then
+ * dumps the live widget tree as JSON.
  *
  * It catches runtime errors and missing assets without a watch, and its output
  * drives tools/preview.py, which renders README screenshots from the real code.
@@ -22,7 +23,7 @@ const scenario = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
 const enumOf = (names) => Object.fromEntries(names.map((n, i) => [n, i + 1]));
 const WIDGET = enumOf(['IMG', 'TEXT', 'TEXT_FONT', 'ARC_PROGRESS', 'IMG_TIME', 'IMG_STATUS', 'IMG_LEVEL', 'WATCHFACE_EDIT_GROUP', 'WIDGET_DELEGATE', 'GROUP']);
 const WIDGET_NAME = Object.fromEntries(Object.entries(WIDGET).map(([k, v]) => [v, k]));
-const PROP = enumOf(['TEXT', 'SRC', 'VISIBLE', 'MORE', 'CURRENT_TYPE', 'COLOR']);
+const PROP = enumOf(['TEXT', 'SRC', 'VISIBLE', 'MORE', 'CURRENT_TYPE', 'COLOR', 'ANGLE']);
 const DATA_TYPES = ['STEP', 'CAL', 'HEART', 'DISTANCE', 'FLOOR', 'STAND', 'FAT_BURNING', 'SPO2', 'STRESS', 'UVI',
   'HUMIDITY', 'AQI', 'PAI_WEEKLY', 'WEATHER_CURRENT', 'BATTERY'];
 
@@ -45,6 +46,7 @@ function makeWidget(type, props) {
       else if (prop === PROP.VISIBLE) w.visible = !!value;
       else if (prop === PROP.MORE) Object.assign(w.props, value);
       else if (prop === PROP.COLOR) w.props.color = value;
+      else if (prop === PROP.ANGLE) w.props.angle = value;
       else errors.push(`unknown setProperty ${prop}`);
     },
     getProperty(prop) {
@@ -66,39 +68,42 @@ function checkAsset(rel, w) {
 }
 
 const S = scenario.sensors || {};
-const sensorIds = enumOf(['TIME', 'BATTERY', 'STEP', 'CALORIE', 'HEART', 'DISTANCE', 'WEATHER', 'PAI', 'SLEEP']);
-const sensorName = Object.fromEntries(Object.entries(sensorIds).map(([k, v]) => [v, k]));
 const listeners = [];
-const hmSensor = {
-  id: sensorIds,
-  event: enumOf(['CHANGE', 'LAST']),
-  createSensor(id) {
-    const name = sensorName[id];
-    const data = S[name] || {};
-    const obj = {
-      ...data,
-      event: { MINUTEEND: 100 },
-      addEventListener(ev, fn) { listeners.push({ name, ev, fn }); },
-      removeEventListener() {},
-    };
-    if (name === 'WEATHER') obj.getForecastWeather = () => data.forecast || { tideData: { count: 0, data: [] } };
-    return obj;
-  },
+// @zos/sensor: one class per sensor, reading the scenario's API-level-1-shaped data
+function sensorClass(name, methods) {
+  return class {
+    constructor() {
+      const data = S[name] || {};
+      Object.entries(methods(data)).forEach(([k, f]) => { this[k] = f; });
+      ['onChange', 'onLastChange', 'onPerMinute'].forEach((ev) => {
+        this[ev] = (fn) => listeners.push({ name, ev, fn });
+      });
+      ['offChange', 'offLastChange', 'offPerMinute'].forEach((ev) => { this[ev] = () => {}; });
+    }
+  };
+}
+const progress = (d) => ({ getCurrent: () => d.current || 0, getTarget: () => d.target || 0 });
+const sensorModule = {
+  Time: sensorClass('TIME', (d) => ({
+    getHours: () => d.hour || 0, getMinutes: () => d.minute || 0, getDate: () => d.day || 1,
+    getMonth: () => d.month || 1, getDay: () => d.week || 1,
+  })),
+  Battery: sensorClass('BATTERY', (d) => ({ getCurrent: () => d.current || 0 })),
+  Step: sensorClass('STEP', progress),
+  Calorie: sensorClass('CALORIE', progress),
+  HeartRate: sensorClass('HEART', (d) => ({ getLast: () => d.last || 0, getCurrent: () => d.last || 0 })),
+  Distance: sensorClass('DISTANCE', (d) => ({ getCurrent: () => d.current || 0 })),
+  Pai: sensorClass('PAI', (d) => ({ getTotal: () => d.totalpai || 0, getToday: () => 0 })),
+  Stand: sensorClass('STAND', progress),
+  FatBurning: sensorClass('FAT_BURNING', progress),
+  BloodOxygen: sensorClass('SPO2', (d) => ({ getCurrent: () => ({ value: d.value || 0 }) })),
+  Stress: sensorClass('STRESS', (d) => ({ getCurrent: () => ({ value: d.value || 0 }) })),
+  Weather: sensorClass('WEATHER', (d) => ({ getForecast: () => d.forecast || { tideData: { count: 0, data: [] } } })),
 };
 
 let watchface = null;
-const context = {
-  console,
-  px: (v) => v,
-  WatchFace: (def) => { watchface = def; },
-  hmSensor,
-  hmSetting: {
-    getTimeFormat: () => (scenario.is12h ? 0 : 1),
-    getMileageUnit: () => (scenario.imperial ? 1 : 0),
-    getScreenType: () => 1,
-    screen_type: { WATCHFACE: 1, AOD: 2 },
-  },
-  hmUI: {
+const zos = {
+  ui: {
     widget: WIDGET,
     prop: PROP,
     align: enumOf(['TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CENTER_H', 'CENTER_V']),
@@ -108,21 +113,41 @@ const context = {
     createWidget: makeWidget,
     deleteWidget(handle) { handle._w.alive = false; },
   },
+  sensor: sensorModule,
+  settings: {
+    TIME_FORMAT_12: 0, TIME_FORMAT_24: 1, DISTANCE_UNIT_METRIC: 0, DISTANCE_UNIT_IMPERIAL: 1,
+    getTimeFormat: () => (scenario.is12h ? 0 : 1),
+    getDistanceUnit: () => (scenario.imperial ? 1 : 0),
+  },
+  utils: { px: (v) => v },
+};
+const context = {
+  console,
+  WatchFace: (def) => { watchface = def; },
+  __zos: zos,
 };
 context.globalThis = context;
 
+// resolve `import ... from '@zos/<name>'` to the stubs above
+const zosPlugin = {
+  name: 'zos',
+  setup(b) {
+    b.onResolve({ filter: /^@zos\// }, (args) => ({ path: args.path.slice(5), namespace: 'zos' }));
+    b.onLoad({ filter: /.*/, namespace: 'zos' }, (args) => ({ contents: `module.exports = globalThis.__zos[${JSON.stringify(args.path)}];`, loader: 'js' }));
+  },
+};
 const out = await build({
   entryPoints: [path.join(FACE, 'watchface/index.js')],
-  bundle: true, format: 'iife', write: false, target: 'es2019', logLevel: 'silent',
+  bundle: true, format: 'iife', write: false, target: 'es2019', logLevel: 'silent', plugins: [zosPlugin],
 });
 vm.createContext(context);
 vm.runInContext(out.outputFiles[0].text, context, { filename: 'watchface.js' });
 if (!watchface) throw new Error('WatchFace() was never called');
 watchface.build();
 // simulate a later minute tick so theme switching + updates run again
-for (const l of listeners.filter((x) => x.name === 'TIME')) l.fn();
+for (const l of listeners.filter((x) => x.name === 'TIME' && x.ev === 'onPerMinute')) l.fn();
 
-const dataTypeName = Object.fromEntries(Object.entries(context.hmUI.data_type).map(([k, v]) => [v, k]));
+const dataTypeName = Object.fromEntries(Object.entries(zos.ui.data_type).map(([k, v]) => [v, k]));
 const live = widgets.filter((w) => w.alive && w.type !== 'WIDGET_DELEGATE').map((w) => ({
   ...w, props: { ...w.props, type: w.props.type && w.type !== 'WATCHFACE_EDIT_GROUP' ? dataTypeName[w.props.type] : w.props.type },
 }));

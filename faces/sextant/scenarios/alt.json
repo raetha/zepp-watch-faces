@@ -57,18 +57,18 @@
      ]
     }
    }
+  },
+  "STAND": {
+   "current": 9,
+   "target": 12
+  },
+  "SPO2": {
+   "value": 98
   }
  },
  "bound": {
-  "SPO2": {
-   "value": "98%"
-  },
   "HUMIDITY": {
    "value": "61%"
-  },
-  "STAND": {
-   "value": "9",
-   "level": 75
   },
   "WEATHER_CURRENT": {
    "value": "11\u00b0"
