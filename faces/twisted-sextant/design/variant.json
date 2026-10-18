@@ -35,5 +35,6 @@
   ],
   "FIXED_SLOTS": {
     "5": "weather"
-  }
+  },
+  "DIAG_AT_GAUGE_MID": true
 }

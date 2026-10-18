@@ -72,8 +72,8 @@ export const LAYOUT = {
             "r_outer": 233
           },
           {
-            "s": 317,
-            "e": 318,
+            "s": 313,
+            "e": 314,
             "len": 6,
             "r_center": 230.0,
             "r_outer": 233
@@ -137,9 +137,9 @@ export const LAYOUT = {
         ],
         "marker": {
           "k": 5,
-          "x": 70,
-          "y": 73,
-          "after": 10,
+          "x": 76,
+          "y": 67,
+          "after": 9,
           "base": "brass"
         }
       },
@@ -209,8 +209,8 @@ export const LAYOUT = {
             "r_outer": 233
           },
           {
-            "s": 42,
-            "e": 43,
+            "s": 46,
+            "e": 47,
             "len": 6,
             "r_center": 230.0,
             "r_outer": 233
@@ -274,9 +274,9 @@ export const LAYOUT = {
         ],
         "marker": {
           "k": 1,
-          "x": 394,
-          "y": 73,
-          "after": 10,
+          "x": 388,
+          "y": 67,
+          "after": 9,
           "base": "brass"
         }
       },
@@ -346,8 +346,8 @@ export const LAYOUT = {
             "r_outer": 233
           },
           {
-            "s": 222,
-            "e": 223,
+            "s": 226,
+            "e": 227,
             "len": 6,
             "r_center": 230.0,
             "r_outer": 233
@@ -411,9 +411,9 @@ export const LAYOUT = {
         ],
         "marker": {
           "k": 4,
-          "x": 70,
-          "y": 391,
-          "after": 10,
+          "x": 76,
+          "y": 397,
+          "after": 9,
           "base": "brass"
         }
       },
@@ -620,8 +620,8 @@ export const LAYOUT = {
             "r_outer": 233
           },
           {
-            "s": 137,
-            "e": 138,
+            "s": 133,
+            "e": 134,
             "len": 6,
             "r_center": 230.0,
             "r_outer": 233
@@ -685,9 +685,9 @@ export const LAYOUT = {
         ],
         "marker": {
           "k": 2,
-          "x": 394,
-          "y": 391,
-          "after": 10,
+          "x": 388,
+          "y": 397,
+          "after": 9,
           "base": "brass"
         }
       },

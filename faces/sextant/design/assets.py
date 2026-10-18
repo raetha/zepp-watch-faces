@@ -178,8 +178,11 @@ def marker_image(zepp_deg, col):
 def compass_angles():
     """Marker angles (zepp degrees). The diagonals sit half a degree off 45 so the
     whole-degree ticks either side are equally far away."""
-    return {"progress": [0, 180], "brass2": [0, 180], "brass6": [0, 45.5, 134.5, 180, 225.5, 314.5],
-            "brass8": [0, 45.5, 90, 134.5, 180, 225.5, 270, 314.5]}[K.MARKERS]
+    # DIAG_AT_GAUGE_MID: the diagonals move to the corner gauges' mid-points (43.5 deg), on
+    # the line through the turned corner values (Twisted Sextant)
+    d = corner_alpha() if K.DIAG_AT_GAUGE_MID else 45.5
+    return {"progress": [0, 180], "brass2": [0, 180], "brass6": [0, d, 180 - d, 180, 180 + d, 360 - d],
+            "brass8": [0, d, 90, 180 - d, 180, 180 + d, 270, 360 - d]}[K.MARKERS]
 
 
 def make_markers():

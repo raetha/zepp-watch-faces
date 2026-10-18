@@ -88,6 +88,8 @@ MARKERS = "brass6"                        # "progress": top/bottom markers, dim 
                                           # "brass8": brass markers at all eight compass points
                                           # "brass6": N, S and diagonals: brass until their gauge
                                           #   passes them, then the gauge's colour
+DIAG_AT_GAUGE_MID = False                 # diagonal markers at the corner gauges' mid-points (43.5 deg)
+                                          #   instead of 45.5 (Twisted Sextant: they point at the turned values)
 CORNER_EXTRA_TICK = True                  # one more tick at the divider end of each corner gauge
 BRASS_FLOOR = 0.18                        # brass gradients (band edges, separators) keep at least
                                           #   this share of brass at their ends
