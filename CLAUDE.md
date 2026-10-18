@@ -4,7 +4,8 @@ Zepp OS watch faces for the Amazfit Balance 3 (480×480 round). Sextant is the f
 
 ## How we work
 
-- The owner commits and pushes. Sessions usually have read-only GitHub access, so deliver the whole repo as a zip using the command in `docs/development.md` → "Packaging for delivery". Commit locally first, so the zip carries history-ready changes.
+- Sessions can push to this repo (the owner granted access to `raetha/zepp-watch-faces` only), so commit and push to `main` when a piece of work is done. If a session has read-only access, fall back to a zip of the repo (`docs/development.md` → "Packaging for delivery").
+- Every push to `main` builds the DEV test builds, and a version bump in a face's `app.json` publishes a release, so push freely but never bump a version unasked.
 - Never bump a face's `app.json` version or date its changelog without being asked. A version bump on `main` publishes a release. Record changes under `## [Unreleased]` in `faces/<face>/CHANGELOG.md`.
 - Each push to `main` publishes a DEV test build at https://raetha.github.io/zepp-watch-faces/dev/, and the owner tests it on the watch.
 - Licences: `lib/` and `tools/` are MIT. `faces/<face>/` is CC BY-NC-SA 4.0. Fonts are OFL. Face artwork is original, so never copy other faces.
