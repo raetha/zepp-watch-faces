@@ -1,0 +1,15 @@
+node_modules/
+dist/
+tools/.build/
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+.idea/
+faces/*/dist/
+site/
+release/
+out/
+faces/*-dev/
+tools/.emu*/
+faces/*/previews/

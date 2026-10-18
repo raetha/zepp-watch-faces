@@ -1,0 +1,36 @@
+Licensing for raetha/zepp-watch-faces
+=====================================
+
+This repository uses different licences for different parts. In short: the
+shared tooling is free to reuse for anything, while each watch face's design
+may be shared and remixed but not sold by anyone other than the author.
+
+1. Shared code and tooling: MIT (see LICENSES/MIT.txt)
+   - lib/            (shared watch-face runtime and generator helpers)
+   - tools/          (asset pipeline, test harness, previews, build/site scripts)
+   - .github/        (CI configuration)
+   - repository-level docs and config files (README.md, docs/, package.json, ...)
+
+2. Each watch face: CC BY-NC-SA 4.0 (see LICENSES/CC-BY-NC-SA-4.0.txt)
+   Everything inside faces/<name>/ - its artwork, generated images, layout,
+   design parameters, code, screenshots and documentation - is licensed under
+   Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International.
+   You may study, share and adapt a face for non-commercial purposes, with
+   credit, under the same licence. You may not sell a face or a derivative of it.
+   Build your own face (your own artwork and design) with the MIT tooling if you
+   want to sell it.
+
+3. Names and logos are not licensed
+   Watch-face names (for example "Sextant") and any logos or icons used to
+   identify them in stores are not licensed for reuse under either licence.
+   Derivatives must use a different name.
+
+4. Fonts: SIL Open Font License 1.1
+   fonts/ and the subset fonts inside each face's assets are Roboto Condensed,
+   licensed under the OFL (fonts/OFL-RobotoCondensed.txt). The OFL permits
+   bundling it in paid apps.
+
+The author (raetha) holds the copyright in all original material and may
+distribute any face under other terms, including in paid app stores.
+
+Copyright (c) 2026 raetha

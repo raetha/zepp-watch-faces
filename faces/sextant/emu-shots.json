@@ -1,0 +1,120 @@
+{
+  "_doc": "Screenshot script for tools/emu/screenshots.mjs (real firmware). Each run boots the emulator at `time` from the base watch state; steps run in order. After an always-on shot the watch only wakes briefly, so always-on shots go last in a run. See docs/development.md.",
+  "values": {
+    "walkstep": 12486,
+    "goal_walkstep": 15000,
+    "calorie": 486,
+    "goal_calorie": 800,
+    "heartrate": 72,
+    "battery": 82,
+    "weather": 0,
+    "temp": 18,
+    "floor": 7,
+    "btcon": true,
+    "mute": false,
+    "alarm": false
+  },
+  "runs": [
+    {
+      "time": "2026-10-15T21:14:00",
+      "steps": [
+        {
+          "set": {
+            "mute": true,
+            "alarm": true
+          }
+        },
+        {
+          "shot": "night"
+        },
+        {
+          "set": {
+            "mute": true,
+            "alarm": true
+          }
+        }
+      ]
+    },
+    {
+      "time": "2026-10-15T10:08:00",
+      "steps": [
+        {
+          "set": {
+            "btcon": false,
+            "mute": true,
+            "alarm": true
+          }
+        },
+        {
+          "shot": "day"
+        },
+        {
+          "edit": "open"
+        },
+        {
+          "shot": "day_edit"
+        },
+        {
+          "edit": "theme",
+          "taps": 1
+        },
+        {
+          "edit": "close"
+        },
+        {
+          "set": {
+            "alarm": true,
+            "weather": 3,
+            "temp": 21
+          }
+        },
+        {
+          "shot": "mono"
+        }
+      ]
+    },
+    {
+      "time": "2026-10-15T10:08:00",
+      "steps": [
+        {
+          "edit": "open"
+        },
+        {
+          "edit": "slot0",
+          "taps": 4
+        },
+        {
+          "edit": "slot1",
+          "taps": 2
+        },
+        {
+          "edit": "slot2",
+          "taps": 24
+        },
+        {
+          "edit": "slot3",
+          "taps": 20
+        },
+        {
+          "edit": "slot4",
+          "taps": 1
+        },
+        {
+          "edit": "close"
+        },
+        {
+          "set": {
+            "weather": 5,
+            "temp": 14
+          }
+        },
+        {
+          "shot": "alt"
+        },
+        {
+          "aod": "day_aod"
+        }
+      ]
+    }
+  ]
+}
