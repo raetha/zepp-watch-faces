@@ -896,7 +896,7 @@ def make_edit_assets(L):
     samples = dict(steps="8,412", heart="72", distance="5.86", calories="486", floors="7", pai="64", stand="9",
                    fatburn="23", spo2="98%", stress="27", uvi="3", humidity="61%", aqi="42", sun="18:21", weather="18°",
                    resting="58", sleep="7:32", sleepscore="84", bodytemp="36.4°", vo2max="48", trainload="245",
-                   recovery="36h", altitude="312m", pressure="1013", compass="312°", moon="73%", forecast="21/12°")
+                   recovery="36h", altitude="312m", pressure="1013", compass="312° NW", moon="73%", forecast="21/12°")
     w, h = L["slots"][0]["edit"]["w"], L["slots"][0]["edit"]["h"]
     f = F.pil_font(str(F.TEXT_FONT), 34, S)
     for metric, txt in samples.items():

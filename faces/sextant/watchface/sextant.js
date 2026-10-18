@@ -24,6 +24,7 @@ import {
   TIME_FORMAT_12, DISTANCE_UNIT_IMPERIAL, TEMPERATURE_UNIT_FAHRENHEIT,
 } from '@zos/settings';
 import { px } from '@zos/utils';
+import { getScene, SCENE_AOD } from '@zos/app';
 import { METRIC_IDS, METRIC_TYPE, SENSOR_METRICS, BOUND_METRICS } from '../../../lib/js/metrics';
 import { isNight } from '../../../lib/js/sun';
 import { textWidth } from '../../../lib/js/format';
@@ -120,6 +121,8 @@ export function sextantFace(L) {
     /** The compass only runs while a slot shows it and the face is on screen. */
   compassOn(on) {
     if (this.settings.slots.indexOf('compass') < 0) return;
+    // the always-on screen builds the face too, but never shows the compass
+    if (on && typeof getScene === 'function' && getScene() === SCENE_AOD) return;
     const c = this.sensor('COMPASS');
     if (!c) return;
     try {

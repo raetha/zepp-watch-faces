@@ -129,6 +129,7 @@ const zos = {
     getDistanceUnit: () => (scenario.imperial ? 1 : 0),
   },
   utils: { px: (v) => v },
+  app: { getScene: () => 1, SCENE_AOD: 2 },
 };
 const context = {
   console,

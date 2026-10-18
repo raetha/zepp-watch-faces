@@ -154,7 +154,7 @@ METRICS = {
     "forecast": ("Today's forecast", "#8AB4F8", False),
 }
 # small unit letters some metrics draw after their value (in the metric's colour)
-UNIT_CHARS = {"distance": "kmi", "recovery": "h", "altitude": "mft", "pressure": "hPa"}
+UNIT_CHARS = {"distance": "kmi", "recovery": "h", "altitude": "mft", "pressure": "hPa", "compass": "NESW"}
 DEFAULT_SLOTS = ["calories", "heart", "distance", "steps", "floors", "weather"]   # TL, TR, BL, BM, BR, TM
 EDIT_METRICS = None                       # metrics the editable slots offer (None: all)
 FIXED_SLOTS = {}                          # {slot index: metric} for slots that aren't editable
