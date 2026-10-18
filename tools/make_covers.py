@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Write a face's assets/common.r/icon.png and cover.png from its screenshots/day.png.
+"""Write a face's assets/common.r/icon.png and cover.png from its screenshots/day.png, and
+the store previews (docs/store/preview_en|sc|tc.png, 324x324: Zepp wants one per language,
+showing 10:09).
 
   python3 tools/make_covers.py faces/<face>
 """
@@ -23,4 +25,8 @@ def round_img(img, size):
 out = face / "assets" / "common.r"
 round_img(day, 324).save(out / "cover.png")      # 480x480 devices use a 324x324 preview
 round_img(day, 248).save(out / "icon.png")
-print(f"{face.name}: wrote cover.png and icon.png")
+store = face / "docs" / "store"
+store.mkdir(parents=True, exist_ok=True)
+for lang in ("en", "sc", "tc"):                    # the face's own text is English in every language
+    round_img(day, 324).save(store / f"preview_{lang}.png")
+print(f"{face.name}: wrote cover.png, icon.png and docs/store/preview_*.png")

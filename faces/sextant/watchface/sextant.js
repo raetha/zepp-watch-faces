@@ -47,23 +47,31 @@ export function sextantFace(L) {
   for (let d = 0; d < 10; d++) ROT_CODES[String(d)] = String(d);
   const rotCode = (c) => ROT_CODES[c] || (c >= 'A' && c <= 'Z' ? `cap_${c}` : c);
 
+  /** title: English, or [English, Simplified Chinese, Traditional Chinese]. */
   function editType(type, title, preview, id) {
-    return { type, title_en: title, title_sc: title, title_tc: title, preview, data: { id } };
+    const [en, sc, tc] = Array.isArray(title) ? title : [title, title, title];
+    return { type, title_en: en, title_sc: sc, title_tc: tc, preview, data: { id } };
   }
   // type numbers follow the full metric list, so a metric keeps its type in every face
-  const SLOT_TYPES = METRIC_IDS.map((id) => editType(100001 + METRIC_TYPE[id], L.metrics[id].title, `edit/preview_${id}.png`, id))
+  const SLOT_TYPES = METRIC_IDS.map((id) => editType(100001 + METRIC_TYPE[id],
+    [L.metrics[id].title, L.metrics[id].title_sc, L.metrics[id].title_tc], `edit/preview_${id}.png`, id))
     .filter((t) => !L.edit_metrics || L.edit_metrics.indexOf(t.data.id) >= 0);
   const FIXED = L.fixed_slots || {};
+  /**
+   * The always-on screen builds its own copy of the face. With LIGHT_AOD that copy creates
+   * only the always-on widgets (set false to go back to building everything).
+   */
+  const LIGHT_AOD = true;
   /** A tap on a complication opens its app only if it's this short and this still (ms, px). */
   const TAP_MAX_MS = 600;
   const TAP_MAX_MOVE = 24;
   const THEME_TYPES = [
-    editType(100101, 'Color', 'edit/preview_theme_color.png', 'color'),
-    editType(100102, 'Mono', 'edit/preview_theme_mono.png', 'mono'),
+    editType(100101, ['Color', '彩色', '彩色'], 'edit/preview_theme_color.png', 'color'),
+    editType(100102, ['Mono', '单色', '單色'], 'edit/preview_theme_mono.png', 'mono'),
   ];
   const NIGHT_TYPES = [
-    editType(100201, 'Night mode: auto', 'edit/preview_night_auto.png', 'auto'),
-    editType(100202, 'Night mode: off', 'edit/preview_night_off.png', 'off'),
+    editType(100201, ['Night mode: auto', '夜间模式：自动', '夜間模式：自動'], 'edit/preview_night_auto.png', 'auto'),
+    editType(100202, ['Night mode: off', '夜间模式：关', '夜間模式：關'], 'edit/preview_night_off.png', 'off'),
   ];
 
   function px_(v) {
@@ -264,11 +272,39 @@ export function sextantFace(L) {
     // ---------------------------------------------------------------- render
     render(theme) {
       const C = L.colors[theme];
-      const NORMAL = hmUI.show_level.ONLY_NORMAL;
       const AOD = hmUI.show_level.ONLY_AOD;
       const dyn = { slots: [] };
       this.dyn = dyn;
+      // with no condition text (no weather slot) the time centres in the band by itself;
+      // the always-on time sits in the same place, with the condition under it
+      const hasDesc = this.settings.slots.indexOf('weather') >= 0;
+      const timeAt = hasDesc ? L.time : { ...L.time, y: L.time.y_alone };
+      if (!(LIGHT_AOD && this.isAod())) this.renderNormal(theme, C, dyn, timeAt, hasDesc);
 
+      // ------------------------------------------------------------ always-on
+      this.w(hmUI.widget.IMG, { x: 0, y: 0, src: C.aod_bg, show_level: AOD });
+      this.timeWidgets(`aod/time_${theme}`, timeAt, AOD);
+      if (hasDesc) this.w(hmUI.widget.IMG_LEVEL, {
+        x: px_(L.desc_img.x), y: px_(L.desc_img.y),
+        image_array: L.weather_desc.map((_, i) => `aod/desc/${theme}/${i}.png`), image_length: L.weather_desc.length,
+        type: hmUI.data_type.WEATHER_CURRENT, show_level: AOD,
+      });
+      const aodText = (box, color) => this.text(box, { color, show_level: AOD });
+      dyn.aodDow = aodText(L.aod.date.dow, C.aod_text);
+      dyn.aodDay = aodText(L.aod.date.day, C.aod_text);
+      dyn.aodMonth = aodText(L.aod.date.month, C.aod_text);
+      this.w(hmUI.widget.IMG, {
+        x: px_(L.aod.battery.icon.x), y: px_(L.aod.battery.icon.y), src: `aod/battery_${theme}.png`, show_level: AOD,
+      });
+      dyn.aodBattery = aodText(L.aod.battery.text, C.aod_text);
+
+      // created last: a widget created later (even an always-on one) would take the taps
+      if (!(LIGHT_AOD && this.isAod())) this.renderTaps();
+    },
+
+    /** Everything on the normal (not always-on) screen. */
+    renderNormal(theme, C, dyn, timeAt, hasDesc) {
+      const NORMAL = hmUI.show_level.ONLY_NORMAL;
       this.w(hmUI.widget.IMG, { x: 0, y: 0, src: C.bg, show_level: NORMAL });
       this.editBg.setProperty(hmUI.prop.SRC, `edit/bg_${theme}.png`);
 
@@ -388,31 +424,20 @@ export function sextantFace(L) {
       dyn.battery = this.text(L.battery.text, { color: C.text });
 
       // time
-      // with no condition text (no weather slot) the time centres in the band by itself
-      const hasDesc = this.settings.slots.indexOf('weather') >= 0;
-      this.timeWidgets(`time/${theme}`, hasDesc ? L.time : { ...L.time, y: L.time.y_alone }, NORMAL);
+      this.timeWidgets(`time/${theme}`, timeAt, NORMAL);
       // condition text: pre-rendered names picked by the firmware (current conditions).
       // Only shown when a slot shows weather: without the temperature it's out of context.
-      if (this.settings.slots.indexOf('weather') >= 0) this.w(hmUI.widget.IMG_LEVEL, {
+      if (hasDesc) this.w(hmUI.widget.IMG_LEVEL, {
         x: px_(L.desc_img.x), y: px_(L.desc_img.y),
         image_array: L.weather_desc.map((_, i) => `desc/${theme}/${i}.png`), image_length: L.weather_desc.length,
         type: hmUI.data_type.WEATHER_CURRENT, show_level: NORMAL,
       });
 
-      // ------------------------------------------------------------ always-on
-      this.w(hmUI.widget.IMG, { x: 0, y: 0, src: C.aod_bg, show_level: AOD });
-      this.timeWidgets(`aod/time_${theme}`, { ...L.time, y: L.time.y_aod }, AOD);
-      const aodText = (box, color) => this.text(box, { color, show_level: AOD });
-      dyn.aodDow = aodText(L.aod.date.dow, C.aod_text);
-      dyn.aodDay = aodText(L.aod.date.day, C.aod_text);
-      dyn.aodMonth = aodText(L.aod.date.month, C.aod_text);
-      this.w(hmUI.widget.IMG, {
-        x: px_(L.aod.battery.icon.x), y: px_(L.aod.battery.icon.y), src: `aod/battery_${theme}.png`, show_level: AOD,
-      });
-      dyn.aodBattery = aodText(L.aod.battery.text, C.aod_text);
+    },
 
-      // created last: a widget created later (even an always-on one) would take the taps
-      // tapping a complication opens the matching system app (heart rate, weather, ...)
+    /** Tapping a complication opens the matching system app (heart rate, weather, ...). */
+    renderTaps() {
+      const NORMAL = hmUI.show_level.ONLY_NORMAL;
       this.settings.slots.forEach((id, i) => {
         const app = METRIC_APP[id] && router[`SYSTEM_APP_${METRIC_APP[id]}`];
         if (app === undefined || typeof router.launchApp !== 'function') return;
@@ -476,15 +501,17 @@ export function sextantFace(L) {
       const month = MONTHS[((time.month || 1) - 1 + 12) % 12];
       const day = String(time.day || 1);
       [[dyn.dow, dyn.aodDow, dow], [dyn.day, dyn.aodDay, day], [dyn.month, dyn.aodMonth, month]].forEach(([a, b, v]) => {
-        a.setProperty(hmUI.prop.TEXT, v);
+        if (a) a.setProperty(hmUI.prop.TEXT, v);
         b.setProperty(hmUI.prop.TEXT, v);
       });
 
       // battery
       const level = this.batterySensor ? this.batterySensor.getCurrent() || 0 : 0;
       const band = level > 40 ? 'high' : level > 20 ? 'mid' : 'low';
-      dyn.batteryIcon.setProperty(hmUI.prop.SRC, `battery/${theme}/${band}.png`);
-      dyn.battery.setProperty(hmUI.prop.TEXT, `${level}%`);
+      if (dyn.batteryIcon) {
+        dyn.batteryIcon.setProperty(hmUI.prop.SRC, `battery/${theme}/${band}.png`);
+        dyn.battery.setProperty(hmUI.prop.TEXT, `${level}%`);
+      }
       dyn.aodBattery.setProperty(hmUI.prop.TEXT, `${level}%`);
 
       // complications (the always-on screen shows none)

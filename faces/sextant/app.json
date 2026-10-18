@@ -60,6 +60,12 @@
   "i18n": {
     "en-US": {
       "appName": "Sextant"
+    },
+    "zh-CN": {
+      "appName": "Sextant"
+    },
+    "zh-TW": {
+      "appName": "Sextant"
     }
   },
   "defaultLanguage": "en-US",

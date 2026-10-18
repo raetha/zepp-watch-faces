@@ -860,9 +860,9 @@ export const LAYOUT = {
         "size": 40
       },
       "unit": {
-        "y": 90.5,
-        "h": 29,
-        "size": 20
+        "y": 88.4,
+        "h": 32,
+        "size": 22
       },
       "edit": {
         "x": 63,
@@ -900,9 +900,9 @@ export const LAYOUT = {
         "size": 40
       },
       "unit": {
-        "y": 90.5,
-        "h": 29,
-        "size": 20
+        "y": 88.4,
+        "h": 32,
+        "size": 22
       },
       "edit": {
         "x": 301,
@@ -940,9 +940,9 @@ export const LAYOUT = {
         "size": 40
       },
       "unit": {
-        "y": 370.9,
-        "h": 29,
-        "size": 20
+        "y": 368.8,
+        "h": 32,
+        "size": 22
       },
       "edit": {
         "x": 65,
@@ -980,9 +980,9 @@ export const LAYOUT = {
         "size": 40
       },
       "unit": {
-        "y": 423.8,
-        "h": 29,
-        "size": 20
+        "y": 421.7,
+        "h": 32,
+        "size": 22
       },
       "edit": {
         "x": 182,
@@ -1006,9 +1006,9 @@ export const LAYOUT = {
         "size": 40
       },
       "unit": {
-        "y": 370.9,
-        "h": 29,
-        "size": 20
+        "y": 368.8,
+        "h": 32,
+        "size": 22
       },
       "edit": {
         "x": 299,
@@ -1046,9 +1046,9 @@ export const LAYOUT = {
         "size": 40
       },
       "unit": {
-        "y": 36.8,
-        "h": 29,
-        "size": 20
+        "y": 34.7,
+        "h": 32,
+        "size": 22
       },
       "edit": {
         "x": 182,
@@ -1092,36 +1092,36 @@ export const LAYOUT = {
       "t": 11.84
     },
     "unit": {
-      "0": 9.88,
-      "1": 9.88,
-      "2": 9.88,
-      "3": 9.88,
-      "4": 9.88,
-      "5": 9.88,
-      "6": 9.88,
-      "7": 9.88,
-      "8": 9.88,
-      "9": 9.88,
-      ",": 3.94,
-      ".": 5.27,
-      "-": 4.96,
-      ":": 4.67,
-      "%": 12.66,
-      "\u00b0": 7.47,
-      " ": 4.59,
-      "/": 7.42,
-      "E": 9.94,
-      "N": 12.39,
-      "P": 11.09,
-      "S": 10.37,
-      "W": 15.23,
-      "a": 9.58,
-      "f": 6.33,
-      "h": 9.66,
-      "i": 4.59,
-      "k": 9.02,
-      "m": 15.06,
-      "t": 5.92
+      "0": 10.86,
+      "1": 10.86,
+      "2": 10.86,
+      "3": 10.86,
+      "4": 10.86,
+      "5": 10.86,
+      "6": 10.86,
+      "7": 10.86,
+      "8": 10.86,
+      "9": 10.86,
+      ",": 4.33,
+      ".": 5.8,
+      "-": 5.46,
+      ":": 5.14,
+      "%": 13.92,
+      "\u00b0": 8.22,
+      " ": 5.05,
+      "/": 8.16,
+      "E": 10.94,
+      "N": 13.63,
+      "P": 12.19,
+      "S": 11.41,
+      "W": 16.76,
+      "a": 10.54,
+      "f": 6.96,
+      "h": 10.62,
+      "i": 5.05,
+      "k": 9.91,
+      "m": 16.57,
+      "t": 6.51
     },
     "unit_gap": 3
   },
@@ -1501,118 +1501,118 @@ export const LAYOUT = {
     },
     "night": {
       "text": 15215642,
-      "muted": 10493458,
+      "muted": 11411732,
       "accent": 13444630,
-      "desc": 13903896,
-      "aod_text": 9837072,
+      "desc": 14690841,
+      "aod_text": 11476499,
       "unit": {
         "steps": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "heart": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "distance": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "calories": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "floors": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "pai": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "stand": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "fatburn": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "spo2": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "stress": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "uvi": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "humidity": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "aqi": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "sun": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "weather": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "resting": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "sleep": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "sleepscore": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "bodytemp": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "vo2max": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "trainload": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "recovery": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "altitude": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "pressure": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "compass": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "moon": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         },
         "forecast": {
-          "on": 14559256,
-          "dim": 4066055
+          "on": 14756120,
+          "dim": 4131591
         }
       },
       "bg": "bg/night.png",
@@ -1622,110 +1622,164 @@ export const LAYOUT = {
   "metrics": {
     "steps": {
       "title": "Steps",
+      "title_sc": "\u6b65\u6570",
+      "title_tc": "\u6b65\u6578",
       "progress": true
     },
     "heart": {
       "title": "Heart rate",
+      "title_sc": "\u5fc3\u7387",
+      "title_tc": "\u5fc3\u7387",
       "progress": false
     },
     "distance": {
       "title": "Distance",
+      "title_sc": "\u8ddd\u79bb",
+      "title_tc": "\u8ddd\u96e2",
       "progress": false
     },
     "calories": {
       "title": "Calories",
+      "title_sc": "\u5361\u8def\u91cc",
+      "title_tc": "\u5361\u8def\u91cc",
       "progress": true
     },
     "floors": {
       "title": "Floors climbed",
+      "title_sc": "\u722c\u697c",
+      "title_tc": "\u722c\u6a13",
       "progress": true
     },
     "pai": {
       "title": "PAI",
+      "title_sc": "PAI",
+      "title_tc": "PAI",
       "progress": true
     },
     "stand": {
       "title": "Stand",
+      "title_sc": "\u7ad9\u7acb",
+      "title_tc": "\u7ad9\u7acb",
       "progress": true
     },
     "fatburn": {
       "title": "Fat burning",
+      "title_sc": "\u71c3\u8102",
+      "title_tc": "\u71c3\u8102",
       "progress": true
     },
     "spo2": {
       "title": "Blood oxygen",
+      "title_sc": "\u8840\u6c27",
+      "title_tc": "\u8840\u6c27",
       "progress": false
     },
     "stress": {
       "title": "Stress",
+      "title_sc": "\u538b\u529b",
+      "title_tc": "\u58d3\u529b",
       "progress": false
     },
     "uvi": {
       "title": "UV index",
+      "title_sc": "\u7d2b\u5916\u7ebf",
+      "title_tc": "\u7d2b\u5916\u7dda",
       "progress": false
     },
     "humidity": {
       "title": "Humidity",
+      "title_sc": "\u6e7f\u5ea6",
+      "title_tc": "\u6fd5\u5ea6",
       "progress": false
     },
     "aqi": {
       "title": "Air quality",
+      "title_sc": "\u7a7a\u6c14\u8d28\u91cf",
+      "title_tc": "\u7a7a\u6c23\u54c1\u8cea",
       "progress": false
     },
     "sun": {
       "title": "Sunrise/sunset",
+      "title_sc": "\u65e5\u51fa\u65e5\u843d",
+      "title_tc": "\u65e5\u51fa\u65e5\u843d",
       "progress": false
     },
     "weather": {
       "title": "Weather",
+      "title_sc": "\u5929\u6c14",
+      "title_tc": "\u5929\u6c23",
       "progress": false
     },
     "resting": {
       "title": "Resting heart rate",
+      "title_sc": "\u9759\u606f\u5fc3\u7387",
+      "title_tc": "\u975c\u606f\u5fc3\u7387",
       "progress": false
     },
     "sleep": {
       "title": "Sleep",
+      "title_sc": "\u7761\u7720",
+      "title_tc": "\u7761\u7720",
       "progress": true
     },
     "sleepscore": {
       "title": "Sleep score",
+      "title_sc": "\u7761\u7720\u8bc4\u5206",
+      "title_tc": "\u7761\u7720\u8a55\u5206",
       "progress": true
     },
     "bodytemp": {
       "title": "Body temperature",
+      "title_sc": "\u4f53\u6e29",
+      "title_tc": "\u9ad4\u6eab",
       "progress": false
     },
     "vo2max": {
       "title": "VO2 max",
+      "title_sc": "\u6700\u5927\u6444\u6c27\u91cf",
+      "title_tc": "\u6700\u5927\u651d\u6c27\u91cf",
       "progress": false
     },
     "trainload": {
       "title": "Training load",
+      "title_sc": "\u8bad\u7ec3\u8d1f\u8377",
+      "title_tc": "\u8a13\u7df4\u8ca0\u8377",
       "progress": false
     },
     "recovery": {
       "title": "Recovery time",
+      "title_sc": "\u6062\u590d\u65f6\u95f4",
+      "title_tc": "\u6062\u5fa9\u6642\u9593",
       "progress": false
     },
     "altitude": {
       "title": "Altitude",
+      "title_sc": "\u6d77\u62d4",
+      "title_tc": "\u6d77\u62d4",
       "progress": false
     },
     "pressure": {
       "title": "Air pressure",
+      "title_sc": "\u6c14\u538b",
+      "title_tc": "\u6c23\u58d3",
       "progress": false
     },
     "compass": {
       "title": "Compass",
+      "title_sc": "\u6307\u5357\u9488",
+      "title_tc": "\u6307\u5357\u91dd",
       "progress": false
     },
     "moon": {
       "title": "Moon phase",
+      "title_sc": "\u6708\u76f8",
+      "title_tc": "\u6708\u76f8",
       "progress": false
     },
     "forecast": {
       "title": "Today's forecast",
+      "title_sc": "\u4eca\u65e5\u9884\u62a5",
+      "title_tc": "\u4eca\u65e5\u9810\u5831",
       "progress": false
     }
   },

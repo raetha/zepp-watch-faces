@@ -80,7 +80,7 @@ If more than one face needs a piece of code, move it to `lib/js/` or `lib/py/zfk
 - **Tap to open an app:** each complication gets a transparent `IMG` over its edit box with `CLICK_DOWN` / `CLICK_UP` listeners that call `launchApp({ appId: SYSTEM_APP_..., native: true })` (`@zos/router`; the map is `METRIC_APP` in `lib/js/metrics.js`). Only a quick, still tap counts (`TAP_MAX_MS`, `TAP_MAX_MOVE`), so long presses and swipes behave as before. The tap areas must be created last in `render()`: any widget created after them, even an always-on one that isn't showing, takes the taps. The emulator delivers the taps and calls the launcher, but its image has no system apps installed (`amFindHashData ... failed`), so the apps themselves only open on a watch.
 - **Editor:** the firmware draws it. Tapping a selected box steps to the next option, and swiping up or down on it (or turning the crown) scrolls through them. A face can't replace it with a full-screen list.
 - **Text** is `TEXT` / `TEXT_FONT` with the bundled Roboto Condensed. The time is `IMG_TIME` with pre-rendered fixed-width digits (Roboto Condensed, size solved from `TIME_SIDE_GAP`, currently 121px, brass gradient).
-- **Always-on** widgets use `show_level: ONLY_AOD`: outline digits, date and battery.
+- **Always-on** widgets use `show_level: ONLY_AOD`: outline digits (2px, `AOD_STROKE`), date, battery and, when a slot shows weather, the condition text. The time sits where it is on the normal screen, so nothing jumps. The always-on screen builds its own copy of the face; with `LIGHT_AOD` (in `sextant.js`) that copy creates only the always-on widgets and ignores sensor updates. Set it to `false` to go back to building everything if waking ever misbehaves.
 
 ## Testing on the emulator
 
@@ -141,7 +141,7 @@ Only shots the READMEs or the install site use are kept. A full Sextant set take
 - **Scrolling:** a fast swipe flings a list. `swipe x1 y1 x2 y2 1200` drags slowly and scrolls exactly the distance moved.
 - **Arcs are whole degrees.** Angles are truncated, and arcs under 1° don't draw. Measure positions around the true screen centre (pixel 239.5) when checking symmetry.
 - **Unchanged values:** `set` with the same weather values as before doesn't refresh the weather, and the DND state can stick. Change a value to force an update.
-- **Screen timeout:** after an always-on shot, a tap wakes the screen only briefly. So always-on shots go last in a run.
+- **Screen timeout:** after an always-on shot, a tap wakes the screen only briefly, so always-on shots go last in a run. `emu.mjs key ret` (the button) wakes it reliably.
 - **Editor:** tapping a box selects it, and tapping the selected box again moves to its next option. The first box is selected when the editor opens.
 - **Settings take effect at the next minute tick.** The 12/24-hour switch is one, so wait about 62 s before shooting.
 - **The clock** starts at `--time` (UTC) and keeps running.
@@ -178,6 +178,10 @@ A watch face can't receive anything from the phone. The Zepp app's Settings App 
 ## Sextant's design is locked
 
 Sextant and Twisted Sextant were locked on 2026-10-18: the generator has no switches for alternative designs any more. `faces/sextant/docs/design.md` → "Tried and dropped" lists what was tried; the code for those is in the git history before that date. `SEXTANT_OVERRIDES` still layers config overrides for mock-ups (and is how Twisted Sextant is built), and `DEMO_VALUES` fakes sensor readings for emulator renders.
+
+## Store submission
+
+See `docs/store.md`: what's in place for the Zepp store, what needs the developer account, and each face's listing text (`faces/<face>/docs/store/`).
 
 ## Releasing
 

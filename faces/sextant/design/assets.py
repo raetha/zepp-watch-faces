@@ -273,7 +273,7 @@ def make_time_digits():
         for ch in "0123456789":
             img = Image.new("RGBA", (cell_w * S, cell_h * S), (0, 0, 0, 0))
             ImageDraw.Draw(img).text((0, base_y * S), ch, font=f, fill=(0, 0, 0, 0), anchor="ls",
-                                     features=["tnum"], stroke_width=P(1.4), stroke_fill=col + (255,))
+                                     features=["tnum"], stroke_width=P(K.AOD_STROKE), stroke_fill=col + (255,))
             save(down(img), f"aod/time_{theme}/{ch}.png")
         cimg = Image.new("RGBA", (colon_w * S, cell_h * S), (0, 0, 0, 0))
         cd = ImageDraw.Draw(cimg)
@@ -342,7 +342,7 @@ def make_icons():
 
 
 # ============================================================================= weather condition text
-def make_desc_images(box):
+def make_desc_images(box, colour_key="desc", folder="desc"):
     """One image per weather condition and theme, for an IMG_LEVEL bound to WEATHER_CURRENT.
 
     Face code can't read the current condition at any API level, but a bound IMG_LEVEL is
@@ -353,12 +353,12 @@ def make_desc_images(box):
     baseline = (box["h"] - line_h) / 2 + asc * px           # same placement as a TEXT widget
     f = F.pil_font(str(F.TEXT_FONT), px, S)
     for theme in THEME_NAMES:
-        col = K.THEMES[theme]["desc"]
+        col = K.THEMES[theme][colour_key]
         for i, (_, text) in enumerate(K.WEATHER):
             img = Image.new("RGBA", (box["w"] * S, box["h"] * S), (0, 0, 0, 0))
             if text:
                 ImageDraw.Draw(img).text((img.width / 2, baseline * S), text, font=f, fill=col + (255,), anchor="ms")
-            save(down(img), f"desc/{theme}/{i}.png")
+            save(down(img), f"{folder}/{theme}/{i}.png")
     return dict(x=int(round(box["x"])), y=box["y"], w=box["w"], h=box["h"])
 
 
@@ -662,6 +662,7 @@ def build_layout(tm, bg_paths):
     )
     L["desc"] = text_box(K.DESC_PX, K.C, desc_cy, 260, "HEOTX")
     L["desc_img"] = make_desc_images(L["desc"])
+    make_desc_images(L["desc"], "aod_text", "aod/desc")      # the same names for the always-on screen
     L["night_edit"] = dict(x=round(K.C - 115), y=round(time_cy - 52), w=230, h=104)
 
     # ---------------------------------------------------------------- always-on
@@ -680,7 +681,8 @@ def build_layout(tm, bg_paths):
                               desc=hexint(t["desc"]), aod_text=hexint(t["aod_text"]),
                               unit=m, bg=bg_paths[theme], aod_bg=bg_paths[f"aod_{theme}"])
     L["colors"] = colours
-    L["metrics"] = {k: dict(title=v[0], progress=v[2]) for k, v in K.METRICS.items()}
+    L["metrics"] = {k: dict(title=v[0], title_sc=K.TITLES_ZH[k][0], title_tc=K.TITLES_ZH[k][1], progress=v[2])
+                    for k, v in K.METRICS.items()}
     L["default_slots"] = K.DEFAULT_SLOTS
     L["edit_metrics"] = K.EDIT_METRICS
     if K.DEMO_VALUES:

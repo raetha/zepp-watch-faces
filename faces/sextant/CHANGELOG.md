@@ -22,6 +22,11 @@ All notable changes to the Sextant watch face. The format follows
 - Tap a complication to open the matching app: heart rate, weather, sleep, PAI, stress, the activity summary, training status, altimeter, compass, thermometer or sun and moon. A long press or a swipe that starts on a complication doesn't open anything.
 - Built on Zepp OS API level 4.2 (was 1.0). Stand, fat burning, blood oxygen and stress are now read directly, so stand and fat burning light their gauges towards their daily goals.
 
+- The always-on time stays where it is on the normal screen, with the weather condition under it, so nothing jumps when the screen dims. Its outline digits are 2px (were 1.4px).
+- Night mode's dimmer reds (month, condition text, units, always-on text) are a little brighter, so each meets readability guidelines.
+- Units (km, hPa, ...) are 22px, Zepp's minimum text size (were 20px).
+- Editor titles in Simplified and Traditional Chinese.
+
 ### Fixed
 - Less work on the watch: values are only redrawn when they change, the always-on screen ignores sensor updates, and sleep data is refreshed at most every 10 minutes.
 - Icons are centred in their boxes, and the battery icon has the same gap to its percentage as the complications.

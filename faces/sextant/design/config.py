@@ -69,9 +69,10 @@ TURN_CORNERS = False                      # corner values run along their gauges
                                           #   the icon inward (the top/bottom-middle layout turned)
 DIAG_AT_GAUGE_MID = False                 # diagonal markers at the corner gauges' mid-points (43.5 deg)
                                           #   instead of 45.5, so they point at turned values
+AOD_STROKE = 2.0                          # always-on outline digits (Zepp: at least 2px)
 TIME_PX = None                            # (solved by the generator; tabular cells)
 VALUE_PX = 40                             # complication values (Roboto Condensed Regular)
-UNIT_PX = 20
+UNIT_PX = 22                              # Zepp's minimum text size
 DATE_SMALL_PX, DATE_DAY_PX = 32, 42
 BATTERY_VALUE_PX = 40
 DESC_PX = 22
@@ -116,6 +117,18 @@ METRICS = {
     "moon":     ("Moon phase",     "#E8E2C4", False),
     "forecast": ("Today's forecast", "#8AB4F8", False),
 }
+# editor titles in Simplified and Traditional Chinese (Zepp asks for English, SC and TC)
+TITLES_ZH = {
+    "steps": ("步数", "步數"), "distance": ("距离", "距離"), "calories": ("卡路里", "卡路里"),
+    "floors": ("爬楼", "爬樓"), "stand": ("站立", "站立"), "fatburn": ("燃脂", "燃脂"), "pai": ("PAI", "PAI"),
+    "heart": ("心率", "心率"), "resting": ("静息心率", "靜息心率"), "spo2": ("血氧", "血氧"),
+    "stress": ("压力", "壓力"), "bodytemp": ("体温", "體溫"), "sleep": ("睡眠", "睡眠"),
+    "sleepscore": ("睡眠评分", "睡眠評分"), "vo2max": ("最大摄氧量", "最大攝氧量"),
+    "trainload": ("训练负荷", "訓練負荷"), "recovery": ("恢复时间", "恢復時間"), "weather": ("天气", "天氣"),
+    "forecast": ("今日预报", "今日預報"), "uvi": ("紫外线", "紫外線"), "humidity": ("湿度", "濕度"),
+    "aqi": ("空气质量", "空氣品質"), "altitude": ("海拔", "海拔"), "pressure": ("气压", "氣壓"),
+    "compass": ("指南针", "指南針"), "sun": ("日出日落", "日出日落"), "moon": ("月相", "月相"),
+}
 # small unit letters some metrics draw after their value (in the metric's colour)
 UNIT_CHARS = {"distance": "kmi", "recovery": "h", "altitude": "mft", "pressure": "hPa", "compass": "NESW"}
 DEFAULT_SLOTS = ["calories", "heart", "distance", "steps", "stand", "weather"]   # TL, TR, BL, BM, BR, TM
@@ -142,12 +155,14 @@ THEMES = {
         dim_factor=0.30, metric=(236, 238, 240), muted_icon=(120, 124, 130),
     ),
     "night": dict(
-        text=(232, 44, 26), muted=(160, 30, 18), accent=(205, 38, 22),
-        desc=(212, 40, 24), divider=(60, 10, 6),
+        # each red is the dimmest that stays readable: 4.5:1 on black for text under 24px
+        # (condition, units), 3:1 for the larger date and always-on text
+        text=(232, 44, 26), muted=(174, 33, 20), accent=(205, 38, 22),
+        desc=(224, 42, 25), divider=(60, 10, 6),
         band=None, glow_lo=(16, 3, 2),                  # no band fill: pure black for night vision
         time=((240, 52, 30), (190, 34, 20)),
-        aod_time=(190, 34, 20), aod_text=(150, 26, 16),
-        dim_factor=0.28, metric=(222, 40, 24), muted_icon=(120, 22, 12),
+        aod_time=(190, 34, 20), aod_text=(175, 30, 19),
+        dim_factor=0.28, metric=(225, 41, 24), muted_icon=(120, 22, 12),
     ),
 }
 

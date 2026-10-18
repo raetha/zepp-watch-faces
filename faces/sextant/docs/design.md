@@ -7,7 +7,7 @@ The decisions behind the layout, so future changes keep the same logic. All numb
 - Readable from arm's length. The time is large, the complication values are 40px, and there are no text labels. Each metric is identified by its own icon shape and colour.
 - Everything is optically centred on glyph ink, not on font boxes.
 - Things that look related share geometry: the band flare, the divider bends and the separator flares all use matching angles, and the six gauges are the same length.
-- Battery-aware: black sections, a dim always-on screen with outline digits, and no seconds.
+- Battery-aware: black sections, a dim always-on screen with outline digits (about 5% of the screen lit; Zepp's limit is 10%), and no seconds.
 
 ## Geometry
 
@@ -49,7 +49,7 @@ The decisions behind the layout, so future changes keep the same logic. All numb
 ## Colour
 
 - **Colour theme:** navy band, brass accents (214,172,96), brass time gradient. Metric colours: steps green, heart red, distance blue, calories orange, floors violet, and so on.
-- **Night theme:** everything deep red on pure black, with no band fill (only its red edge lines) (main text contrast 4.8:1, about the practical limit for pure red).
+- **Night theme:** everything deep red on pure black, with no band fill (only its red edge lines). Each red is the dimmest that stays readable: main text 4.8:1, condition text and units 4.5:1 (text under 24px), date and always-on text 3:1 (larger text). Pure red can't go much past 5:1.
 - **Mono theme:** white and greys on black.
 
 ## Twisted Sextant
