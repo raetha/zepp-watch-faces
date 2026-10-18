@@ -9,7 +9,7 @@
 ## How it differs from Sextant
 
 - **Turned corners.** The face draws each corner value from one image per character and the watch turns them, so only metrics the face can read itself can turn.
-- **Ten metrics to choose from** in every editable slot: steps, heart rate, distance, calories, PAI, stand, fat-burning minutes, blood oxygen, stress, and next sunrise or sunset. Floors, UV index, humidity and air quality aren't offered, because the watch fills those in itself and they can't turn.
+- **22 metrics to choose from** in every editable slot: steps, distance, calories, stand, fat-burning minutes, PAI, heart rate, resting heart rate, blood oxygen, stress, body temperature, sleep, sleep score, VO2 max, training load, recovery time, today's forecast, altitude, air pressure, compass heading, next sunrise or sunset, and moon phase. Floors, current weather, UV index, humidity and air quality aren't offered in the slots, because the watch fills those in itself and they can't turn.
 - **Weather is fixed at the top** (current condition icon and temperature, with the condition's name under the time). It isn't editable.
 - **Defaults:** blood oxygen top left, heart rate top right, distance bottom left, steps bottom centre, calories bottom right.
 
@@ -23,7 +23,7 @@ Everything else is Sextant: the time bar, date and battery, status icons, compas
 | **Always-on** | **Other complications** | **Edit mode** |
 | <img src="screenshots/day_aod.png" width="250"> | <img src="screenshots/alt.png" width="250"> | <img src="screenshots/day_edit.png" width="250"> |
 
-All screenshots are taken on the real Zepp OS firmware (Amazfit Balance 2 emulator image). The emulator can't feed test values to some sensors (distance, PAI, stand, fat burning, blood oxygen, stress), so those show 0 or -- in the screenshots.
+All screenshots are taken on the real Zepp OS firmware (Amazfit Balance 2 emulator image). The emulator can't feed test values to some sensors (distance, PAI, stand, fat burning, blood oxygen, stress, sleep, training, barometer, body temperature, compass), so those show 0 or -- in the screenshots.
 
 ## Development
 

@@ -36,7 +36,42 @@ METRIC_SVG = {
         <path d="M2.5 18h19M6 21h12M12 8V3M9.5 5.5 12 3l2.5 2.5"/>
         <path d="M5.5 11.2l1.4 1.4M18.5 11.2l-1.4 1.4"/></g>
         <path fill="{c}" d="M7 18a5 5 0 0 1 10 0z"/>''',
+    "resting": lambda c: f'<path fill="none" stroke="{c}" stroke-width="1.9" stroke-linejoin="round" d="M12 21s-7.5-4.6-9.4-9.3C1.2 8.1 3.4 4.5 7 4.5c2 0 3.6 1.1 5 2.9 1.4-1.8 3-2.9 5-2.9 3.6 0 5.8 3.6 4.4 7.2C19.5 16.4 12 21 12 21z"/><path fill="none" stroke="{c}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" d="M6.5 12.2h3.2l1.1-2.2 2 4.2 1.1-2h3.6"/>',
+    "sleep": lambda c: f'<path fill="none" stroke="{c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M3 6v13M3 15.5h18V19M21 15.5v-3a3 3 0 0 0-3-3h-7v6"/><circle cx="7" cy="12" r="2.1" fill="{c}"/>',
+    "sleepscore": lambda c: f'<path fill="{c}" d="M12.5 3.5a8.5 8.5 0 1 0 7.9 11.6A7 7 0 0 1 12.5 3.5z"/><path fill="{c}" d="M18.2 2.5l.9 2 2 .9-2 .9-.9 2-.9-2-2-.9 2-.9z"/>',
+    "bodytemp": lambda c: f'<path fill="none" stroke="{c}" stroke-width="2" d="M10 4.6a2 2 0 0 1 4 0v9.2a4.2 4.2 0 1 1-4 0z"/><circle cx="12" cy="17.4" r="2.1" fill="{c}"/><path stroke="{c}" stroke-width="2" stroke-linecap="round" d="M12 9.5v6"/>',
+    "vo2max": lambda c: f'<path fill="none" stroke="{c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v8l-2.4 2M12 11l2.4 2"/><path fill="{c}" d="M9.4 7.6C6 7.8 3.6 12.8 3.6 17.8c0 1.8 1.3 2.7 2.8 2.2L10 18.7v-9c0-1.2-.2-2.1-.6-2.1zM14.6 7.6c3.4.2 5.8 5.2 5.8 10.2 0 1.8-1.3 2.7-2.8 2.2L14 18.7v-9c0-1.2.2-2.1.6-2.1z"/>',
+    "trainload": lambda c: f'<path fill="none" stroke="{c}" stroke-width="2.2" stroke-linecap="round" d="M3.8 17.5a8.2 8.2 0 1 1 16.4 0"/><path stroke="{c}" stroke-width="2.2" stroke-linecap="round" d="M12 17.5l4.4-5.6"/><circle cx="12" cy="17.5" r="1.9" fill="{c}"/><path stroke="{c}" stroke-width="1.8" stroke-linecap="round" d="M6.2 11.6l1.2 1M12 7.6v1.5"/>',
+    "recovery": lambda c: f'<path fill="none" stroke="{c}" stroke-width="2.2" stroke-linecap="round" d="M19.4 12.5a7.5 7.5 0 1 1-2.6-6.2"/><path fill="{c}" d="M20.6 2.8v6.4h-6.4z"/><path stroke="{c}" stroke-width="2.1" stroke-linecap="round" d="M12 9v7M8.5 12.5h7"/>',
+    "altitude": lambda c: f'<path fill="{c}" d="M1.5 20 8.6 7.5l4.3 7.4 2.6-4.2L22.5 20z"/><path fill="none" stroke="{c}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M15.5 3.5v4.2M13.6 5.4l1.9-1.9 1.9 1.9"/>',
+    "pressure": lambda c: f'<circle cx="12" cy="12" r="9.2" fill="none" stroke="{c}" stroke-width="2"/><path stroke="{c}" stroke-width="2.1" stroke-linecap="round" d="M12 12.5 16.3 7.8M6.2 15.4h1.6M16.2 15.4h1.6M12 5.4v1.6M7.4 8l1.1 1.1"/><circle cx="12" cy="12.5" r="1.7" fill="{c}"/>',
+    "compass": lambda c: f'<circle cx="12" cy="12" r="9.3" fill="none" stroke="{c}" stroke-width="1.8"/><path fill="{c}" d="M12 4.6l2.8 7.4H9.2z"/><path fill="{c}" fill-opacity="0.42" d="M12 19.4 9.2 12h5.6z"/>',
 }
+
+
+def moon_svg(k, c):
+    """Moon phase k of 8 (0 new, 2 first quarter, 4 full, 6 last quarter): the lit part
+    bounded by the rim and the terminator, over a faint outline of the whole disc."""
+    import math
+    r, cx, cy = 8.6, 12, 12
+    out = f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{c}" stroke-opacity="0.45" stroke-width="1.4"/>'
+    if k == 0:
+        return out
+    if k == 4:
+        return out + f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{c}"/>'
+    p = k / 8
+    rx = abs(math.cos(2 * math.pi * p)) * r
+    waxing = p < 0.5
+    crescent = (p < 0.25) or (p > 0.75)
+    rim = 1 if waxing else 0                      # waxing: right half lit (top -> right -> bottom)
+    term = (0 if crescent else 1) if waxing else (1 if crescent else 0)
+    d = f"M{cx} {cy - r}A{r} {r} 0 0 {rim} {cx} {cy + r}A{rx:.2f} {r} 0 0 {term} {cx} {cy - r}z"
+    return out + f'<path fill="{c}" d="{d}"/>'
+
+
+for _k in range(8):
+    METRIC_SVG[f"moon_{_k}"] = (lambda k: lambda c: moon_svg(k, c))(_k)
+METRIC_SVG["moon"] = METRIC_SVG["moon_4"]
 
 BATTERY_SVG = lambda c: f'<rect x="2" y="7" width="18" height="10" rx="2.5" fill="none" stroke="{c}" stroke-width="1.8"/><rect x="20.6" y="10" width="2" height="4" rx="1" fill="{c}"/><rect x="4.4" y="9.4" width="11" height="5.2" rx="1.2" fill="{c}"/>'
 

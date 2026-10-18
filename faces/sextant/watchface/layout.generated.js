@@ -1020,9 +1020,15 @@ export const LAYOUT = {
       "%": 25.31,
       "\u00b0": 14.94,
       " ": 9.18,
+      "/": 14.84,
+      "P": 22.17,
+      "a": 19.16,
+      "f": 12.66,
+      "h": 19.32,
+      "i": 9.18,
       "k": 18.03,
       "m": 30.12,
-      "i": 9.18
+      "t": 11.84
     },
     "unit": {
       "0": 9.88,
@@ -1042,9 +1048,15 @@ export const LAYOUT = {
       "%": 12.66,
       "\u00b0": 7.47,
       " ": 4.59,
+      "/": 7.42,
+      "P": 11.09,
+      "a": 9.58,
+      "f": 6.33,
+      "h": 9.66,
+      "i": 4.59,
       "k": 9.02,
       "m": 15.06,
-      "i": 4.59
+      "t": 5.92
     },
     "unit_gap": 3
   },
@@ -1250,6 +1262,54 @@ export const LAYOUT = {
         "weather": {
           "on": 9090296,
           "dim": 2700874
+        },
+        "resting": {
+          "on": 16747157,
+          "dim": 4991277
+        },
+        "sleep": {
+          "on": 9215743,
+          "dim": 2764620
+        },
+        "sleepscore": {
+          "on": 11771391,
+          "dim": 3551052
+        },
+        "bodytemp": {
+          "on": 16752256,
+          "dim": 4992806
+        },
+        "vo2max": {
+          "on": 5099745,
+          "dim": 1523268
+        },
+        "trainload": {
+          "on": 16766287,
+          "dim": 4997144
+        },
+        "recovery": {
+          "on": 8505220,
+          "dim": 2571304
+        },
+        "altitude": {
+          "on": 12364452,
+          "dim": 3683121
+        },
+        "pressure": {
+          "on": 9479342,
+          "dim": 2830644
+        },
+        "compass": {
+          "on": 15123066,
+          "dim": 4536869
+        },
+        "moon": {
+          "on": 15262404,
+          "dim": 4604987
+        },
+        "forecast": {
+          "on": 9090296,
+          "dim": 2700874
         }
       },
       "bg": "bg/color.png",
@@ -1319,6 +1379,54 @@ export const LAYOUT = {
           "dim": 4671304
         },
         "weather": {
+          "on": 15527664,
+          "dim": 4671304
+        },
+        "resting": {
+          "on": 15527664,
+          "dim": 4671304
+        },
+        "sleep": {
+          "on": 15527664,
+          "dim": 4671304
+        },
+        "sleepscore": {
+          "on": 15527664,
+          "dim": 4671304
+        },
+        "bodytemp": {
+          "on": 15527664,
+          "dim": 4671304
+        },
+        "vo2max": {
+          "on": 15527664,
+          "dim": 4671304
+        },
+        "trainload": {
+          "on": 15527664,
+          "dim": 4671304
+        },
+        "recovery": {
+          "on": 15527664,
+          "dim": 4671304
+        },
+        "altitude": {
+          "on": 15527664,
+          "dim": 4671304
+        },
+        "pressure": {
+          "on": 15527664,
+          "dim": 4671304
+        },
+        "compass": {
+          "on": 15527664,
+          "dim": 4671304
+        },
+        "moon": {
+          "on": 15527664,
+          "dim": 4671304
+        },
+        "forecast": {
           "on": 15527664,
           "dim": 4671304
         }
@@ -1392,6 +1500,54 @@ export const LAYOUT = {
         "weather": {
           "on": 14559256,
           "dim": 4066055
+        },
+        "resting": {
+          "on": 14559256,
+          "dim": 4066055
+        },
+        "sleep": {
+          "on": 14559256,
+          "dim": 4066055
+        },
+        "sleepscore": {
+          "on": 14559256,
+          "dim": 4066055
+        },
+        "bodytemp": {
+          "on": 14559256,
+          "dim": 4066055
+        },
+        "vo2max": {
+          "on": 14559256,
+          "dim": 4066055
+        },
+        "trainload": {
+          "on": 14559256,
+          "dim": 4066055
+        },
+        "recovery": {
+          "on": 14559256,
+          "dim": 4066055
+        },
+        "altitude": {
+          "on": 14559256,
+          "dim": 4066055
+        },
+        "pressure": {
+          "on": 14559256,
+          "dim": 4066055
+        },
+        "compass": {
+          "on": 14559256,
+          "dim": 4066055
+        },
+        "moon": {
+          "on": 14559256,
+          "dim": 4066055
+        },
+        "forecast": {
+          "on": 14559256,
+          "dim": 4066055
         }
       },
       "bg": "bg/night.png",
@@ -1457,6 +1613,54 @@ export const LAYOUT = {
     },
     "weather": {
       "title": "Weather",
+      "progress": false
+    },
+    "resting": {
+      "title": "Resting heart rate",
+      "progress": false
+    },
+    "sleep": {
+      "title": "Sleep",
+      "progress": true
+    },
+    "sleepscore": {
+      "title": "Sleep score",
+      "progress": true
+    },
+    "bodytemp": {
+      "title": "Body temperature",
+      "progress": false
+    },
+    "vo2max": {
+      "title": "VO2 max",
+      "progress": false
+    },
+    "trainload": {
+      "title": "Training load",
+      "progress": false
+    },
+    "recovery": {
+      "title": "Recovery time",
+      "progress": false
+    },
+    "altitude": {
+      "title": "Altitude",
+      "progress": false
+    },
+    "pressure": {
+      "title": "Air pressure",
+      "progress": false
+    },
+    "compass": {
+      "title": "Compass",
+      "progress": false
+    },
+    "moon": {
+      "title": "Moon phase",
+      "progress": false
+    },
+    "forecast": {
+      "title": "Today's forecast",
       "progress": false
     }
   },

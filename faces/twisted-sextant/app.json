@@ -31,7 +31,12 @@
     "data:user.hd.stand",
     "data:user.hd.fat_burning",
     "data:user.hd.spo2",
-    "data:user.hd.stress"
+    "data:user.hd.stress",
+    "data:user.hd.sleep",
+    "data:user.hd.workout",
+    "data:user.hd.body_temp",
+    "device:os.barometer",
+    "device:os.compass"
   ],
   "targets": {
     "common": {

@@ -380,7 +380,7 @@ def metric_rgb(theme, metric):
 def make_icons():
     for theme in THEME_NAMES:
         for metric in list(METRIC_SVG):
-            base = metric if metric in K.METRICS else "sun"
+            base = metric if metric in K.METRICS else metric.split("_")[0] if metric.split("_")[0] in K.METRICS else "sun"
             rgb = metric_rgb(theme, base)
             svg = METRIC_SVG[metric]("#%02x%02x%02x" % rgb)
             save(centred(svg_to_image(svg, K.ICON_PX), K.ICON_PX), f"icons/{theme}/{metric}.png")
@@ -389,6 +389,8 @@ def make_icons():
             save(img, f"weather/{theme}/{i}.png")
             small = retint(svg_to_image(weather_svg(kind), K.ICON_PX), theme, K.THEMES[theme].get("metric"))
             save(centred(small, K.ICON_PX), f"icons/{theme}/weather_{i}.png")
+            if i == 0:                                   # today's forecast starts on this icon
+                save(centred(small, K.ICON_PX), f"icons/{theme}/forecast.png")
         for level, hx in K.BATTERY_COLORS.items():
             rgb = K.hexrgb(hx) if theme == "color" else K.THEMES[theme]["metric"]
             save(centred(svg_to_image(BATTERY_SVG("#%02x%02x%02x" % rgb), K.BATTERY_ICON_PX), K.BATTERY_ICON_PX), f"battery/{theme}/{level}.png")
@@ -477,14 +479,19 @@ def solve_side_x():
 
 
 def char_widths(px):
-    chars = "0123456789,.-:%° kmi"
+    chars = "0123456789,.-:%° /" + "".join(sorted(set("".join(K.UNIT_CHARS.values()))))
     return {c: round(F.advance(F.TEXT_FONT, px, c), 2) for c in chars}
 
 
 # ============================================================================= rotated corners (mock)
 ROT_SET = {0: "n", 1: "p", 2: "p", 4: "n"}     # slot -> rotation set (TL, TR, BL, BR)
-ROT_CHARS = {**{str(d): str(d) for d in range(10)}, ",": "comma", ".": "dot", "-": "dash", ":": "colon"}
-ROT_UNIT_CHARS = "kmi"
+ROT_CHARS = {**{str(d): str(d) for d in range(10)}, ",": "comma", ".": "dot", "-": "dash", ":": "colon",
+             "%": "pct", "/": "slash", "°": "deg"}
+
+
+def rot_code(c):
+    """File-name code for a glyph (letters keep their case apart on any file system)."""
+    return ROT_CHARS.get(c) or (f"cap_{c}" if c.isupper() else c)
 
 
 def corner_alpha():
@@ -524,8 +531,9 @@ def make_rot_assets():
         t = K.THEMES[theme]
         for c, code in ROT_CHARS.items():
             save(rot_glyph(c, K.VALUE_PX, t["text"]), f"rot/{theme}/{code}.png")
-        for c in ROT_UNIT_CHARS:
-            save(rot_glyph(c, K.UNIT_PX, metric_rgb(theme, "distance")), f"rot/{theme}/u_distance_{c}.png")
+        for metric, chars in K.UNIT_CHARS.items():
+            for c in chars:
+                save(rot_glyph(c, K.UNIT_PX, metric_rgb(theme, metric)), f"rot/{theme}/u_{metric}_{rot_code(c)}.png")
     Image.new("RGBA", (1, 1), (0, 0, 0, 0)).save(OUT / "rot" / "blank.png")
 
 
@@ -841,6 +849,8 @@ def build_layout(tm, bg_paths):
     L["metrics"] = {k: dict(title=v[0], progress=v[2]) for k, v in K.METRICS.items()}
     L["default_slots"] = K.DEFAULT_SLOTS
     L["edit_metrics"] = K.EDIT_METRICS
+    if K.DEMO_VALUES:
+        L["demo_values"] = K.DEMO_VALUES
     L["fixed_slots"] = {str(k): v for k, v in K.FIXED_SLOTS.items()}
     L["weather_desc"] = [d for _, d in K.WEATHER]
     L["font"] = "fonts/" + F.TEXT_FONT_SUBSET_NAME
@@ -884,12 +894,14 @@ def make_edit_assets(L):
 
     # per-metric previews: icon above a sample value
     samples = dict(steps="8,412", heart="72", distance="5.86", calories="486", floors="7", pai="64", stand="9",
-                   fatburn="23", spo2="98%", stress="27", uvi="3", humidity="61%", aqi="42", sun="18:21", weather="18°")
+                   fatburn="23", spo2="98%", stress="27", uvi="3", humidity="61%", aqi="42", sun="18:21", weather="18°",
+                   resting="58", sleep="7:32", sleepscore="84", bodytemp="36.4°", vo2max="48", trainload="245",
+                   recovery="36h", altitude="312m", pressure="1013", compass="312°", moon="73%", forecast="21/12°")
     w, h = L["slots"][0]["edit"]["w"], L["slots"][0]["edit"]["h"]
     f = F.pil_font(str(F.TEXT_FONT), 34, S)
     for metric, txt in samples.items():
         img = Image.new("RGBA", (w * S, h * S), (0, 0, 0, 0))
-        svg = weather_svg("partly_day") if metric == "weather" else METRIC_SVG[metric]("#%02x%02x%02x" % K.hexrgb(K.METRICS[metric][1]))
+        svg = weather_svg("partly_day") if metric in ("weather", "forecast") else METRIC_SVG[metric]("#%02x%02x%02x" % K.hexrgb(K.METRICS[metric][1]))
         icon = svg_to_image(svg, 28 * S)
         img.alpha_composite(icon, (img.width // 2 - icon.width // 2, P(8)))
         ImageDraw.Draw(img).text((img.width // 2, P(h - 14)), txt, font=f, fill=(244, 246, 248, 255), anchor="ms")

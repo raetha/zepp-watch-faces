@@ -140,10 +140,26 @@ METRICS = {
     "aqi":      ("Air quality",    "#A0D468", False),
     "sun":      ("Sunrise/sunset", "#FFC23D", False),
     "weather":  ("Weather",        "#8AB4F8", False),
+    "resting":  ("Resting heart rate", "#FF8A95", False),
+    "sleep":    ("Sleep",          "#8C9EFF", True),
+    "sleepscore": ("Sleep score",  "#B39DFF", True),
+    "bodytemp": ("Body temperature", "#FF9E80", False),
+    "vo2max":   ("VO2 max",        "#4DD0E1", False),
+    "trainload": ("Training load", "#FFD54F", False),
+    "recovery": ("Recovery time",  "#81C784", False),
+    "altitude": ("Altitude",       "#BCAAA4", False),
+    "pressure": ("Air pressure",   "#90A4AE", False),
+    "compass":  ("Compass",        "#E6C27A", False),
+    "moon":     ("Moon phase",     "#E8E2C4", False),
+    "forecast": ("Today's forecast", "#8AB4F8", False),
 }
+# small unit letters some metrics draw after their value (in the metric's colour)
+UNIT_CHARS = {"distance": "kmi", "recovery": "h", "altitude": "mft", "pressure": "hPa"}
 DEFAULT_SLOTS = ["calories", "heart", "distance", "steps", "floors", "weather"]   # TL, TR, BL, BM, BR, TM
 EDIT_METRICS = None                       # metrics the editable slots offer (None: all)
 FIXED_SLOTS = {}                          # {slot index: metric} for slots that aren't editable
+DEMO_VALUES = None                        # mock-ups only: {metric: {"text", "unit", "progress", "icon"}}
+                                          #   shown instead of sensor readings the emulator can't feed
 
 THEMES = {
     "color": dict(

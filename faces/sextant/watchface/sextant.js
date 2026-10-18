@@ -17,10 +17,14 @@
 import * as hmUI from '@zos/ui';
 import {
   Time, Battery, Step, Calorie, HeartRate, Distance, Pai, Weather, Stand, FatBurning, BloodOxygen, Stress,
+  Sleep, Workout, Barometer, BodyTemperature, Compass,
 } from '@zos/sensor';
-import { getTimeFormat, getDistanceUnit, TIME_FORMAT_12, DISTANCE_UNIT_IMPERIAL } from '@zos/settings';
+import {
+  getTimeFormat, getDistanceUnit, getTemperatureUnit, getSleepTarget,
+  TIME_FORMAT_12, DISTANCE_UNIT_IMPERIAL, TEMPERATURE_UNIT_FAHRENHEIT,
+} from '@zos/settings';
 import { px } from '@zos/utils';
-import { METRIC_IDS, SENSOR_METRICS, BOUND_METRICS } from '../../../lib/js/metrics';
+import { METRIC_IDS, METRIC_TYPE, SENSOR_METRICS, BOUND_METRICS } from '../../../lib/js/metrics';
 import { isNight } from '../../../lib/js/sun';
 import { textWidth } from '../../../lib/js/format';
 
@@ -44,14 +48,15 @@ export function sextantFace(L) {
 
   // ------------------------------------------------------------------ editor options
   /** Glyph image names for CORNER_ROTATE (see design/assets.py ROT_CHARS). */
-  const ROT_CODES = { ',': 'comma', '.': 'dot', '-': 'dash', ':': 'colon' };
+  const ROT_CODES = { ',': 'comma', '.': 'dot', '-': 'dash', ':': 'colon', '%': 'pct', '/': 'slash', '°': 'deg' };
   for (let d = 0; d < 10; d++) ROT_CODES[String(d)] = String(d);
+  const rotCode = (c) => ROT_CODES[c] || (c >= 'A' && c <= 'Z' ? `cap_${c}` : c);
 
   function editType(type, title, preview, id) {
     return { type, title_en: title, title_sc: title, title_tc: title, preview, data: { id } };
   }
   // type numbers follow the full metric list, so a metric keeps its type in every face
-  const SLOT_TYPES = METRIC_IDS.map((id, i) => editType(100001 + i, L.metrics[id].title, `edit/preview_${id}.png`, id))
+  const SLOT_TYPES = METRIC_IDS.map((id) => editType(100001 + METRIC_TYPE[id], L.metrics[id].title, `edit/preview_${id}.png`, id))
     .filter((t) => !L.edit_metrics || L.edit_metrics.indexOf(t.data.id) >= 0);
   const FIXED = L.fixed_slots || {};
   const THEME_TYPES = [
@@ -71,6 +76,7 @@ export function sextantFace(L) {
   const SENSORS = {
     TIME: Time, BATTERY: Battery, STEP: Step, CALORIE: Calorie, HEART: HeartRate, DISTANCE: Distance,
     PAI: Pai, WEATHER: Weather, STAND: Stand, FAT_BURNING: FatBurning, SPO2: BloodOxygen, STRESS: Stress,
+    SLEEP: Sleep, WORKOUT: Workout, BAROMETER: Barometer, BODY_TEMP: BodyTemperature, COMPASS: Compass,
   };
 
   WatchFace({
@@ -102,13 +108,30 @@ export function sextantFace(L) {
 
       hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
         resume_call: () => {
+          this.compassOn(true);
           this.applyTheme(false);
           this.update();
         },
+        pause_call: () => this.compassOn(false),
       });
+      this.compassOn(true);
     },
 
-    onDestroy() {
+    /** The compass only runs while a slot shows it and the face is on screen. */
+  compassOn(on) {
+    if (this.settings.slots.indexOf('compass') < 0) return;
+    const c = this.sensor('COMPASS');
+    if (!c) return;
+    try {
+      if (on) c.start();
+      else c.stop();
+    } catch (e) {
+      // not available on this watch
+    }
+  },
+
+  onDestroy() {
+    this.compassOn(false);
       this.unsubscribe && this.unsubscribe();
     },
 
@@ -129,7 +152,14 @@ export function sextantFace(L) {
         this.applyTheme(false);
         this.update();
       };
-      const onChange = () => this.update();
+      // at most one refresh a second (the compass and barometer report often)
+    let last = 0;
+    const onChange = () => {
+      const t = Date.now();
+      if (t - last < 1000) return;
+      last = t;
+      this.update();
+    };
       const subs = [];
       if (this.timeSensor) {
         this.timeSensor.onPerMinute(onMinute);
@@ -138,12 +168,12 @@ export function sextantFace(L) {
       const watched = new Set(['BATTERY']);
       this.settings.slots.forEach((id) => {
         const def = SENSOR_METRICS[id];
-        if (def && def.sensor !== 'WEATHER') watched.add(def.sensor);
+        if (def && ['WEATHER', 'TIME', 'SLEEP', 'WORKOUT', 'BODY_TEMP'].indexOf(def.sensor) < 0) watched.add(def.sensor);
       });
       watched.forEach((name) => {
         const s = this.sensor(name);
         if (!s) return;
-        const def = Object.values(SENSOR_METRICS).find((d) => d.sensor === name);
+        const def = this.settings.slots.map((id) => SENSOR_METRICS[id]).find((d) => d && d.sensor === name);
         // heart rate reports its last measurement; the others report changes
         const [on, off] = def && def.event === 'LAST' ? ['onLastChange', 'offLastChange'] : ['onChange', 'offChange'];
         if (typeof s[on] !== 'function') return;
@@ -395,6 +425,7 @@ export function sextantFace(L) {
         hour: t.getHours(), minute: t.getMinutes(), day: t.getDate(), month: t.getMonth(),
         // 1 = Monday ... 7 = Sunday (0 is also taken as Sunday)
         week: ((t.getDay() + 6) % 7) + 1,
+      ms: t.getTime(),
       };
     },
 
@@ -427,6 +458,8 @@ export function sextantFace(L) {
         time,
         is12h: getTimeFormat() === TIME_FORMAT_12,
         imperial: getDistanceUnit() === DISTANCE_UNIT_IMPERIAL,
+        fahrenheit: getTemperatureUnit() === TEMPERATURE_UNIT_FAHRENHEIT,
+        sleepTarget: getSleepTarget() || 480,
       };
       dyn.slots.forEach((slot, i) => {
         const def = SENSOR_METRICS[slot.id];
@@ -438,6 +471,8 @@ export function sextantFace(L) {
         } catch (e) {
           // keep the placeholder
         }
+        // DEMO_VALUES (mock-ups on the emulator only, never in a release build)
+        if (L.demo_values && L.demo_values[slot.id]) r = L.demo_values[slot.id];
         this.setValue(i, slot, r, C);
         if (r.icon) slot.icon.setProperty(hmUI.prop.SRC, `${slot.iconDir}/${r.icon}.png`);
         if (slot.progress) this.setTicks(slot, r.progress);
@@ -461,7 +496,7 @@ export function sextantFace(L) {
       items.forEach((it) => {
         const mid = s + it.w / 2;
         s += it.w;
-        const code = it.u ? `u_${slot.id}_${it.c}` : ROT_CODES[it.c];
+        const code = it.u ? `u_${slot.id}_${rotCode(it.c)}` : ROT_CODES[it.c];
         if (!it.c || !code || n >= slot.glyphs.length) return;
         slot.glyphs[n++].setProperty(hmUI.prop.MORE, {
           x: px_(Math.round(R.vx + R.cos * mid - R.q / 2)), y: px_(Math.round(R.vy + R.sin * mid - R.q / 2)),

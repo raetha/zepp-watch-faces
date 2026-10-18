@@ -1,7 +1,39 @@
 {
   "_doc": "Twisted Sextant is Sextant with these overrides of faces/sextant/design/config.py (built by design/generate.py).",
   "CORNER_ROTATE": "text_icon",
-  "DEFAULT_SLOTS": ["spo2", "heart", "distance", "steps", "calories", "weather"],
-  "EDIT_METRICS": ["steps", "heart", "distance", "calories", "pai", "stand", "fatburn", "spo2", "stress", "sun"],
-  "FIXED_SLOTS": {"5": "weather"}
+  "DEFAULT_SLOTS": [
+    "spo2",
+    "heart",
+    "distance",
+    "steps",
+    "calories",
+    "weather"
+  ],
+  "EDIT_METRICS": [
+    "steps",
+    "heart",
+    "distance",
+    "calories",
+    "pai",
+    "stand",
+    "fatburn",
+    "spo2",
+    "stress",
+    "sun",
+    "resting",
+    "bodytemp",
+    "sleep",
+    "sleepscore",
+    "vo2max",
+    "trainload",
+    "recovery",
+    "altitude",
+    "pressure",
+    "compass",
+    "moon",
+    "forecast"
+  ],
+  "FIXED_SLOTS": {
+    "5": "weather"
+  }
 }

@@ -81,23 +81,23 @@
         },
         {
           "edit": "slot0",
-          "taps": 2
+          "taps": 4
         },
         {
           "edit": "slot1",
-          "taps": 7
+          "taps": 2
         },
         {
           "edit": "slot2",
-          "taps": 11
+          "taps": 24
         },
         {
           "edit": "slot3",
-          "taps": 11
+          "taps": 20
         },
         {
           "edit": "slot4",
-          "taps": 2
+          "taps": 1
         },
         {
           "edit": "close"

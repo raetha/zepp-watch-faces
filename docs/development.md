@@ -76,6 +76,8 @@ If more than one face needs a piece of code, move it to `lib/js/` or `lib/py/zfk
 - **Gauges**: every tick is its own short `ARC_PROGRESS` (one per 2°, coloured dim or lit), so nothing depends on how the firmware layers arcs over images. An earlier overlay-mask approach failed on the Balance 3: arcs drew on top of the mask.
   - Sensor metrics with a goal (steps, calories, PAI, stand, fat burning) light the first round(progress × N) ticks in fill order.
   - System-bound metrics (floors, current weather, UV, humidity, air quality) have no sensor at API level 4.2. They show their value through `TEXT_FONT`, and the face can't read the number, so floors' ticks stay dim.
+- **Metrics** are defined once in `lib/js/metrics.js`: `METRIC_IDS` is the editor order, and `METRIC_TYPE` gives each metric a fixed editor type number (100001 + n), so reordering or adding metrics never changes what a saved slot shows. Add new metrics at the end of `METRIC_TYPE`. Each metric also needs a colour and title in `design/config.py` (`METRICS`), an icon in `lib/py/zfkit/icons.py`, a sample in the edit previews, and a permission in `app.json` if its sensor needs one. Units drawn small after the value are listed in `UNIT_CHARS`. Moon phase is computed from the date (`lib/js/moon.js`). The compass only runs while a slot shows it and the face is on screen.
+- **Editor:** the firmware draws it. Tapping a selected box steps to the next option, and swiping up or down on it (or turning the crown) scrolls through them. A face can't replace it with a full-screen list.
 - **Text** is `TEXT` / `TEXT_FONT` with the bundled Roboto Condensed. The time is `IMG_TIME` with pre-rendered fixed-width digits (Roboto Regular, size solved from `TIME_SIDE_GAP`, currently 106px, brass gradient).
 - **Always-on** widgets use `show_level: ONLY_AOD`: outline digits, date and battery.
 
@@ -145,7 +147,7 @@ Only shots the READMEs or the install site use are kept. A full Sextant set take
 
 **Emulator limits:**
 - `zeus build` converts images to the watch's own compressed format, which the emulator can't decode. `tools/emu/prepare.py` swaps the original PNGs back in, for the emulator only.
-- Test values (`set`) reach steps, calories, heart rate and battery through `@zos/sensor`, and every bound widget. Distance, PAI, stand, fat burning, blood oxygen and stress read 0 through `@zos/sensor` even when set (their bound widgets do show the values), so check those on a real watch.
+- Test values (`set`) reach steps, calories, heart rate and battery through `@zos/sensor`, and every bound widget. Distance, PAI, stand, fat burning, blood oxygen and stress read 0 through `@zos/sensor` even when set (their bound widgets do show the values), and so do sleep, training, barometer, body temperature and compass, so check those on a real watch. For mock-ups, `DEMO_VALUES` in `design/config.py` (an override) shows given values instead of readings.
 - The weather location is fixed (Beijing data: sunset 17:55). Weather values only update when they change.
 
 The firmware log, including the face's `console.log` output, is in `tools/.emu/serial.log`. Watch state persists in `tools/.emu/flash.bin`.
@@ -163,7 +165,7 @@ The firmware log, including the face's `console.log` output, is in `tools/.emu/s
 
 - **Always-on screen**, with the setting on and following the watch face, shows the outline time, date and battery.
 
-Still to check on a real watch: **distance units** (`getDistanceUnit()`), and the readings of distance, PAI, stand, fat burning, blood oxygen and stress, which the emulator can't feed (see the emulator limits). If those read 0 on a watch, those metrics can go back to bound widgets in `lib/js/metrics.js`.
+Still to check on a real watch: **distance units** (`getDistanceUnit()`), °F for body temperature and the forecast (assumed to come in °C), and the readings of distance, PAI, stand, fat burning, blood oxygen, stress, sleep, training, barometer, body temperature and compass, which the emulator can't feed (see the emulator limits). If those read 0 on a watch, those metrics can go back to bound widgets in `lib/js/metrics.js`.
 
 ## Phone-side settings (not built)
 
