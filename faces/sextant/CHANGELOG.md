@@ -11,7 +11,7 @@ All notable changes to the Sextant watch face. The format follows
 - The time bar is exactly a third of the screen height, and the time uses Roboto Condensed at 121px (was Roboto at 106px).
 - Weekday and month are bigger (32px, was 21px), so they're easier to read.
 - Dividers, separators and band edges are 1px wider (3px), because 2px was too faint on the watch.
-- Steps moves to the bottom centre, and calories to the top left.
+- Steps moves to the bottom centre, calories to the top left, and stand takes the bottom right (was floors).
 - The weather condition under the time only shows when a complication shows weather.
 - The status icons move out of the time bar: alarm and Do Not Disturb at the bottom of the top-centre section, Bluetooth and lock at the top of the bottom-centre section, each pair set off from its metric by a flared rule. The time and the weather condition now spread evenly in the bar, and the time centres by itself when no complication shows weather.
 - Compass markers at north, south and the four diagonals. They stay brass until their gauge's progress passes them, then take the gauge's colour.

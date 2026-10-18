@@ -1,11 +1,11 @@
 {
  "name": "nodata",
  "edit": [
-  "spo2",
+  "calories",
   "heart",
   "distance",
   "steps",
-  "calories",
+  "stand",
   "color",
   "auto"
  ],
@@ -45,6 +45,10 @@
      "data": []
     }
    }
+  },
+  "STAND": {
+   "current": 8,
+   "target": 12
   }
  },
  "bound": {

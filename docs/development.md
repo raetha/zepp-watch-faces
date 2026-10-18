@@ -147,7 +147,7 @@ Only shots the READMEs or the install site use are kept. A full Sextant set take
 
 **Emulator limits:**
 - `zeus build` converts images to the watch's own compressed format, which the emulator can't decode. `tools/emu/prepare.py` swaps the original PNGs back in, for the emulator only.
-- Test values (`set`) reach steps, calories, heart rate and battery through `@zos/sensor`, and every bound widget. Distance, PAI, stand, fat burning, blood oxygen and stress read 0 through `@zos/sensor` even when set (their bound widgets do show the values), and so do sleep, training, barometer, body temperature and compass, so check those on a real watch. For mock-ups, `DEMO_VALUES` in `design/config.py` (an override) shows given values instead of readings.
+- Test values (`set`) reach steps, calories, heart rate and battery through `@zos/sensor`, and every bound widget. Distance, PAI, stand, fat burning, blood oxygen and stress read 0 through `@zos/sensor` even when set (their bound widgets do show the values), and so do training, barometer, body temperature and compass (sleep does read the emulator's own sleep data), so check those on a real watch. For mock-ups, `DEMO_VALUES` in `design/config.py` (an override) shows given values instead of readings.
 - The weather location is fixed (Beijing data: sunset 17:55). Weather values only update when they change.
 
 The firmware log, including the face's `console.log` output, is in `tools/.emu/serial.log`. Watch state persists in `tools/.emu/flash.bin`.

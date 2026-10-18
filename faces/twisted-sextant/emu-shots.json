@@ -1,5 +1,5 @@
 {
-  "_doc": "Screenshot script for tools/emu/screenshots.mjs (real firmware). Each run boots the emulator at `time` from the base watch state; steps run in order. After an always-on shot the watch only wakes briefly, so always-on shots go last in a run. See docs/development.md. Twisted Sextant's alt run picks PAI, stress, sunrise/sunset, fat burning and stand.",
+  "_doc": "Screenshot script for tools/emu/screenshots.mjs (real firmware). Each run boots the emulator at `time` from the base watch state; steps run in order. After an always-on shot the watch only wakes briefly, so always-on shots go last in a run. See docs/development.md.",
   "values": {
     "walkstep": 12486,
     "goal_walkstep": 15000,
@@ -87,7 +87,7 @@
         },
         {
           "edit": "slot0",
-          "taps": 19
+          "taps": 3
         },
         {
           "edit": "slot1",
@@ -99,7 +99,7 @@
         },
         {
           "edit": "slot3",
-          "taps": 4
+          "taps": 11
         },
         {
           "edit": "slot4",

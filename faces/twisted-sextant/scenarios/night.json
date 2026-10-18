@@ -1,11 +1,11 @@
 {
  "name": "night",
  "edit": [
-  "spo2",
+  "calories",
   "heart",
   "distance",
   "steps",
-  "calories",
+  "stand",
   "color",
   "auto"
  ],
@@ -59,6 +59,10 @@
   },
   "SPO2": {
    "value": 97
+  },
+  "STAND": {
+   "current": 8,
+   "target": 12
   }
  },
  "bound": {

@@ -1677,7 +1677,7 @@ export const LAYOUT = {
     "heart",
     "distance",
     "steps",
-    "floors",
+    "stand",
     "weather"
   ],
   "edit_metrics": null,

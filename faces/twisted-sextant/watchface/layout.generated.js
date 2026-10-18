@@ -1730,11 +1730,11 @@ export const LAYOUT = {
     }
   },
   "default_slots": [
-    "spo2",
+    "calories",
     "heart",
     "distance",
     "steps",
-    "calories",
+    "stand",
     "weather"
   ],
   "edit_metrics": [
