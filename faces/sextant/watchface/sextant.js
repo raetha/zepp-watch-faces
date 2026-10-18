@@ -25,7 +25,8 @@ import {
 } from '@zos/settings';
 import { px } from '@zos/utils';
 import { getScene, SCENE_AOD } from '@zos/app';
-import { METRIC_IDS, METRIC_TYPE, SENSOR_METRICS, BOUND_METRICS } from '../../../lib/js/metrics';
+import * as router from '@zos/router';
+import { METRIC_IDS, METRIC_TYPE, METRIC_APP, SENSOR_METRICS, BOUND_METRICS } from '../../../lib/js/metrics';
 import { isNight } from '../../../lib/js/sun';
 import { textWidth } from '../../../lib/js/format';
 
@@ -60,6 +61,9 @@ export function sextantFace(L) {
   const SLOT_TYPES = METRIC_IDS.map((id) => editType(100001 + METRIC_TYPE[id], L.metrics[id].title, `edit/preview_${id}.png`, id))
     .filter((t) => !L.edit_metrics || L.edit_metrics.indexOf(t.data.id) >= 0);
   const FIXED = L.fixed_slots || {};
+  /** A tap on a complication opens its app only if it's this short and this still (ms, px). */
+  const TAP_MAX_MS = 600;
+  const TAP_MAX_MOVE = 24;
   const THEME_TYPES = [
     editType(100101, 'Color', 'edit/preview_theme_color.png', 'color'),
     editType(100102, 'Mono', 'edit/preview_theme_mono.png', 'mono'),
@@ -406,6 +410,33 @@ export function sextantFace(L) {
         x: px_(L.aod.battery.icon.x), y: px_(L.aod.battery.icon.y), src: `aod/battery_${theme}.png`, show_level: AOD,
       });
       dyn.aodBattery = aodText(L.aod.battery.text, C.aod_text);
+
+      // created last: a widget created later (even an always-on one) would take the taps
+      // tapping a complication opens the matching system app (heart rate, weather, ...)
+      this.settings.slots.forEach((id, i) => {
+        const app = METRIC_APP[id] && router[`SYSTEM_APP_${METRIC_APP[id]}`];
+        if (app === undefined || typeof router.launchApp !== 'function') return;
+        const e = L.slots[i].edit;
+        const hit = this.w(hmUI.widget.IMG, {
+          x: px_(e.x), y: px_(e.y), w: px_(e.w), h: px_(e.h), src: `edit/tap_${e.w}x${e.h}.png`, show_level: NORMAL,
+        });
+        // a quick tap only: a long press or a swipe that starts here does nothing
+        let down = null;
+        hit.addEventListener(hmUI.event.CLICK_DOWN, (info) => {
+          down = { t: Date.now(), x: info && info.x, y: info && info.y };
+        });
+        hit.addEventListener(hmUI.event.CLICK_UP, (info) => {
+          const d = down;
+          down = null;
+          if (!d || Date.now() - d.t > TAP_MAX_MS) return;
+          if (info && d.x !== undefined && Math.abs(info.x - d.x) + Math.abs(info.y - d.y) > TAP_MAX_MOVE) return;
+          try {
+            router.launchApp({ appId: app, native: true });
+          } catch (err) {
+            // this watch doesn't have that app
+          }
+        });
+      });
     },
 
     timeWidgets(dir, T, level) {

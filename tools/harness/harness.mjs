@@ -49,6 +49,7 @@ function makeWidget(type, props) {
       else if (prop === PROP.ANGLE) w.props.angle = value;
       else errors.push(`unknown setProperty ${prop}`);
     },
+    addEventListener(ev, fn) { w.listeners = (w.listeners || 0) + 1; },
     getProperty(prop) {
       if (prop === PROP.CURRENT_TYPE) {
         const pick = (scenario.edit || [])[editCounter++];
@@ -116,6 +117,7 @@ const zos = {
     show_level: { ONLY_NORMAL: 1, ONLY_AOD: 2, ONLY_EDIT: 4 },
     system_status: enumOf(['DISCONNECT', 'DISTURB', 'CLOCK', 'LOCK']),
     data_type: enumOf(DATA_TYPES),
+    event: enumOf(['CLICK_DOWN', 'CLICK_UP', 'MOVE']),
     createWidget: makeWidget,
     deleteWidget(handle) { handle._w.alive = false; },
   },
@@ -130,6 +132,11 @@ const zos = {
   },
   utils: { px: (v) => v },
   app: { getScene: () => 1, SCENE_AOD: 2 },
+  router: {
+    launchApp: () => {},
+    ...Object.fromEntries(['STATUS', 'HR', 'WEATHER', 'PAI', 'PRESSURE', 'THERMOMETER', 'SLEEP', 'SPORT_STATUS', 'ALTIMETER',
+      'COMPASS', 'SUN_AND_MOON'].map((n, i) => [`SYSTEM_APP_${n}`, i + 1])),
+  },
 };
 const context = {
   console,

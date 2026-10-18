@@ -19,6 +19,7 @@ All notable changes to the Sextant watch face. The format follows
 - The bar's separators take the brass gradient of its edges, and both keep a little brass at their ends.
 
 - Twelve more complications: resting heart rate, sleep (with progress towards your sleep goal), sleep score, body temperature, VO2 max, training load, recovery time, altitude, air pressure, compass heading (degrees and the cardinal point, like 312° NW), moon phase and today's forecast (high/low and condition). The editor list is grouped: activity, body, training, outdoors, then sun and moon.
+- Tap a complication to open the matching app: heart rate, weather, sleep, PAI, stress, the activity summary, training status, altimeter, compass, thermometer or sun and moon. A long press or a swipe that starts on a complication doesn't open anything.
 - Built on Zepp OS API level 4.2 (was 1.0). Stand, fat burning, blood oxygen and stress are now read directly, so stand and fat burning light their gauges towards their daily goals.
 
 ### Fixed

@@ -882,6 +882,8 @@ def make_edit_assets(L):
     for w, h in sizes:
         save(frame(w, h, (214, 172, 96, 255), 3), f"edit/select_{w}x{h}.png")
         save(frame(w, h, (120, 128, 140, 200), 2), f"edit/unselect_{w}x{h}.png")
+        # tap areas over the complications (fully transparent; the widget box takes the tap)
+        save(Image.new("RGBA", (w, h), (0, 0, 0, 0)), f"edit/tap_{w}x{h}.png")
     for theme in THEME_NAMES:
         for r in L.get("rules") or []:
             save(rule_image(RULE_PTS[r["src"]], theme, r["x"], r["y"]), f"rule/{theme}_{r['src']}.png")

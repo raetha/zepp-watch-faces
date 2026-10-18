@@ -41,6 +41,7 @@ All screenshots are taken on the real Zepp OS firmware (Amazfit Balance 2 emulat
   - training: VO2 max, training load, recovery time
   - outdoors: weather, today's forecast (high/low), UV index, humidity, air quality, altitude, air pressure, compass heading
   - sky: next sunrise or sunset, moon phase
+  - Tap a complication to open its app (heart rate, weather, sleep and so on).
   - In the editor, swipe up or down on a selected section (or turn the crown) to scroll through the choices.
 - **Progress ticks:** goal-based metrics light up their section's ticks. Compass markers at north, south and the diagonals stay brass until a gauge's progress reaches them, then light in its colour.
 - **Night mode:** everything switches to deep red on pure black between sunset and sunrise, using your weather location's sun times. Turn it off in Edit mode (tap the time).
