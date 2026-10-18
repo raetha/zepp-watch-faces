@@ -34,12 +34,12 @@ All screenshots are taken on the real Zepp OS firmware (Amazfit Balance 2 emulat
 - **Weather:** the current condition's icon and temperature at the top (a complication, so it can move or be swapped), with the condition's name under the time (shown whenever a complication shows weather).
 - **Battery:** icon and percentage on the right. The icon turns orange at 40% and red at 20%.
 - **Date:** weekday, day and month on the left of the time bar.
-- **Status icons** above the time: Bluetooth, Do Not Disturb, alarm and screen lock. Each slot always shows something: a blue Bluetooth icon while connected (a red slashed one when disconnected), and a dim outline for the others that lights up in colour when that mode is on.
+- **Status icons** beside the time bar: alarm and Do Not Disturb above it, Bluetooth and screen lock below it. Each slot always shows something: a blue Bluetooth icon while connected (a red slashed one when disconnected), and a dim outline for the others that lights up in colour when that mode is on.
 - **Six editable complications.** Long-press the face → **Edit**, then tap any section. Choices:
   - steps, heart rate, distance (km or mi, following your watch setting), calories, floors climbed
   - PAI, stand, fat-burning minutes, blood oxygen, stress
   - UV index, humidity, air quality, next sunrise or sunset, weather
-- **Progress ticks:** goal-based metrics light up their section's ticks. The top and bottom gauges have a marker at the halfway point that lights up too.
+- **Progress ticks:** goal-based metrics light up their section's ticks. Compass markers at north, south and the diagonals stay brass until a gauge's progress reaches them, then light in its colour.
 - **Night mode:** everything switches to deep red on pure black between sunset and sunrise, using your weather location's sun times. Turn it off in Edit mode (tap the time).
 - **Mono theme:** an all-white-on-black version, friendly to colour-blind users. Pick it in Edit mode (tap the date).
 - **Always-on display:** outline digits with the date and battery on black, to save battery.

@@ -9,6 +9,13 @@ export const LAYOUT = {
       {
         "ticks": [
           {
+            "s": 335,
+            "e": 336,
+            "len": 6,
+            "r_center": 230.0,
+            "r_outer": 233
+          },
+          {
             "s": 333,
             "e": 334,
             "len": 6,
@@ -72,20 +79,6 @@ export const LAYOUT = {
             "r_outer": 233
           },
           {
-            "s": 315,
-            "e": 316,
-            "len": 6,
-            "r_center": 230.0,
-            "r_outer": 233
-          },
-          {
-            "s": 313,
-            "e": 314,
-            "len": 6,
-            "r_center": 230.0,
-            "r_outer": 233
-          },
-          {
             "s": 311,
             "e": 312,
             "len": 6,
@@ -141,10 +134,24 @@ export const LAYOUT = {
             "r_center": 230.0,
             "r_outer": 233
           }
-        ]
+        ],
+        "marker": {
+          "k": 5,
+          "x": 70,
+          "y": 73,
+          "after": 10,
+          "base": "brass"
+        }
       },
       {
         "ticks": [
+          {
+            "s": 24,
+            "e": 25,
+            "len": 6,
+            "r_center": 230.0,
+            "r_outer": 233
+          },
           {
             "s": 26,
             "e": 27,
@@ -209,20 +216,6 @@ export const LAYOUT = {
             "r_outer": 233
           },
           {
-            "s": 44,
-            "e": 45,
-            "len": 6,
-            "r_center": 230.0,
-            "r_outer": 233
-          },
-          {
-            "s": 46,
-            "e": 47,
-            "len": 6,
-            "r_center": 230.0,
-            "r_outer": 233
-          },
-          {
             "s": 48,
             "e": 49,
             "len": 6,
@@ -278,10 +271,24 @@ export const LAYOUT = {
             "r_center": 230.0,
             "r_outer": 233
           }
-        ]
+        ],
+        "marker": {
+          "k": 1,
+          "x": 394,
+          "y": 73,
+          "after": 10,
+          "base": "brass"
+        }
       },
       {
         "ticks": [
+          {
+            "s": 204,
+            "e": 205,
+            "len": 6,
+            "r_center": 230.0,
+            "r_outer": 233
+          },
           {
             "s": 206,
             "e": 207,
@@ -346,20 +353,6 @@ export const LAYOUT = {
             "r_outer": 233
           },
           {
-            "s": 224,
-            "e": 225,
-            "len": 6,
-            "r_center": 230.0,
-            "r_outer": 233
-          },
-          {
-            "s": 226,
-            "e": 227,
-            "len": 6,
-            "r_center": 230.0,
-            "r_outer": 233
-          },
-          {
             "s": 228,
             "e": 229,
             "len": 6,
@@ -415,7 +408,14 @@ export const LAYOUT = {
             "r_center": 230.0,
             "r_outer": 233
           }
-        ]
+        ],
+        "marker": {
+          "k": 4,
+          "x": 70,
+          "y": 391,
+          "after": 10,
+          "base": "brass"
+        }
       },
       {
         "ticks": [
@@ -547,15 +547,22 @@ export const LAYOUT = {
           }
         ],
         "marker": {
-          "k": 1,
+          "k": 3,
           "x": 232,
           "y": 459,
           "after": 9,
-          "base": "dim"
+          "base": "brass"
         }
       },
       {
         "ticks": [
+          {
+            "s": 155,
+            "e": 156,
+            "len": 6,
+            "r_center": 230.0,
+            "r_outer": 233
+          },
           {
             "s": 153,
             "e": 154,
@@ -620,20 +627,6 @@ export const LAYOUT = {
             "r_outer": 233
           },
           {
-            "s": 135,
-            "e": 136,
-            "len": 6,
-            "r_center": 230.0,
-            "r_outer": 233
-          },
-          {
-            "s": 133,
-            "e": 134,
-            "len": 6,
-            "r_center": 230.0,
-            "r_outer": 233
-          },
-          {
             "s": 131,
             "e": 132,
             "len": 6,
@@ -689,7 +682,14 @@ export const LAYOUT = {
             "r_center": 230.0,
             "r_outer": 233
           }
-        ]
+        ],
+        "marker": {
+          "k": 2,
+          "x": 394,
+          "y": 391,
+          "after": 10,
+          "base": "brass"
+        }
       },
       {
         "ticks": [
@@ -825,11 +825,24 @@ export const LAYOUT = {
           "x": 232,
           "y": 5,
           "after": 9,
-          "base": "dim"
+          "base": "brass"
         }
       }
     ]
   },
+  "rules": [
+    {
+      "x": 190,
+      "y": 104,
+      "src": "t"
+    },
+    {
+      "x": 190,
+      "y": 359,
+      "src": "b"
+    }
+  ],
+  "_notes_rim_gap": 5.7,
   "slots": [
     {
       "cx": 123.2,
@@ -913,24 +926,24 @@ export const LAYOUT = {
       "cx": 240.0,
       "icon": {
         "x": 224,
-        "y": 356,
+        "y": 374,
         "size": 32
       },
       "value": {
         "x": 174.0,
-        "y": 386,
+        "y": 404,
         "w": 132,
         "h": 55,
         "size": 40
       },
       "unit": {
-        "y": 405.8,
+        "y": 423.8,
         "h": 29,
         "size": 20
       },
       "edit": {
         "x": 182,
-        "y": 348,
+        "y": 366,
         "w": 116,
         "h": 88
       }
@@ -965,24 +978,24 @@ export const LAYOUT = {
       "cx": 240.0,
       "icon": {
         "x": 224,
-        "y": 95,
+        "y": 74,
         "size": 32
       },
       "value": {
         "x": 174.0,
-        "y": 38,
+        "y": 17,
         "w": 132,
         "h": 55,
         "size": 40
       },
       "unit": {
-        "y": 57.8,
+        "y": 36.8,
         "h": 29,
         "size": 20
       },
       "edit": {
         "x": 182,
-        "y": 42,
+        "y": 21,
         "w": 116,
         "h": 93
       }
@@ -1081,53 +1094,53 @@ export const LAYOUT = {
   "glances": [
     {
       "name": "disconnect",
-      "x": 175,
-      "y": 169
+      "x": 211,
+      "y": 329
     },
     {
       "name": "dnd",
-      "x": 211,
-      "y": 169
+      "x": 247,
+      "y": 129
     },
     {
       "name": "alarm",
-      "x": 247,
-      "y": 169
+      "x": 211,
+      "y": 129
     },
     {
       "name": "lock",
-      "x": 283,
-      "y": 169
+      "x": 247,
+      "y": 329
     }
   ],
   "time": {
     "hour_x": 109,
     "minute_x": 251,
     "colon_x": 229,
-    "y": 196,
-    "y_alone": 208,
+    "y": 176,
+    "y_alone": 193,
     "y_aod": 193,
     "cell_w": 60,
     "cell_h": 95,
     "gap_side": 12.0,
-    "gap_vertical": 7.8
+    "gap_vertical": 17.8
   },
   "desc": {
     "x": 110.0,
-    "y": 286,
+    "y": 276,
     "w": 260,
     "h": 34,
     "size": 22
   },
   "desc_img": {
     "x": 110,
-    "y": 286,
+    "y": 276,
     "w": 260,
     "h": 34
   },
   "night_edit": {
     "x": 125,
-    "y": 191,
+    "y": 171,
     "w": 230,
     "h": 104
   },
@@ -1488,12 +1501,12 @@ export const LAYOUT = {
   ],
   "font": "fonts/RobotoCondensed-Regular.ttf",
   "_notes": {
-    "glance_mode": "row",
+    "glance_mode": "sections",
     "side_value_x": 123.2,
     "width_99999": 102.0,
     "gap_99999_to_divider": 10.8,
     "time_px": 121,
     "time_gap_side": 12.0,
-    "time_gap_vertical": 7.8
+    "time_gap_vertical": 17.8
   }
 };

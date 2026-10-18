@@ -13,6 +13,10 @@ All notable changes to the Sextant watch face. The format follows
 - Dividers, separators and band edges are 1px wider (3px), because 2px was too faint on the watch.
 - Steps moves to the bottom centre, and calories to the top left.
 - The weather condition under the time only shows when a complication shows weather.
+- The status icons move out of the time bar: alarm and Do Not Disturb at the bottom of the top-centre section, Bluetooth and lock at the top of the bottom-centre section, each pair set off from its metric by a flared rule. The time and the weather condition now spread evenly in the bar, and the time centres by itself when no complication shows weather.
+- Compass markers at north, south and the four diagonals. They stay brass until their gauge's progress passes them, then take the gauge's colour.
+- The corner gauges gain a tick, and the section dividers are centred in the gaps between gauges.
+- The bar's separators take the brass gradient of its edges, and both keep a little brass at their ends.
 
 ### Fixed
 - Icons are centred in their boxes, and the battery icon has the same gap to its percentage as the complications.

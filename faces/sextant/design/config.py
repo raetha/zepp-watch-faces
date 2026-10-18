@@ -33,7 +33,8 @@ DIV_X = (186, 294)                        # vertical part of the dividers
 ELBOW_Y = 110                             # complication layout reference (value tops sit here)
 DIVIDER_RADIAL = True  # bend the dividers where their outer run points at the centre,
                                           # so it is parallel to the bezel ticks (else bend at ELBOW_Y)
-RIM_ANGLE = 248.12                        # top-left divider heads for this rim angle (PIL deg)
+RIM_ANGLE = 248.5                         # top-left divider heads for this rim angle (PIL deg): centred
+                                          #   in the gap between the gauges' end ticks (was 248.12)
 DIV_START_GAP = 12                        # dividers stop this far from the band edge
 
 # ----------------------------------------------------------------------------- outer ring
@@ -69,29 +70,29 @@ SECTION_GAP = 10                          # band edge -> status-icon row in the 
 VALUE_BOX_DESCENDER = True                # value boxes include a comma's depth (values above icons)
 CORNER_TIME_CLEAR = 3                     # corners mode: least gap from an icon to the time's ink
 TIME_MIN_VGAP = 16                        # time alone in the band: least gap to the band edges
-GLANCE_MODE = "row"                       # "row": status icons in a row above the time
+GLANCE_MODE = "sections"                  # "row": status icons in a row above the time
                                           # "split": two each side of the condition text
                                           # "sections": a pair at the band in the top- and
                                           #   bottom-middle sections (GLANCE_SECTIONS)
 GLANCE_ROW_GAP = 14                       # row mode: gap between icons
 GLANCE_SPLIT = (["disconnect", "lock"], ["dnd", "alarm"])   # split mode: left pair, right pair
-SECTION_RULES = False                     # sections mode: short rule between the status pair and the metric
+SECTION_RULES = True                      # sections mode: a rule between the status pair and the metric
 SECTION_RULE_W = 44
-SEPARATOR_BRASS = False                   # band separators get the band edges' brass gradient
-MARKERS = "progress"                      # "progress": top/bottom markers, dim until their gauge passes
+SEPARATOR_BRASS = True                    # band separators get the band edges' brass gradient
+MARKERS = "brass6"                        # "progress": top/bottom markers, dim until their gauge passes
                                           # "brass2": north/south markers, always brass
                                           # "brass8": brass markers at all eight compass points
                                           # "brass6": N, S and diagonals: brass until their gauge
                                           #   passes them, then the gauge's colour
-CORNER_EXTRA_TICK = False                 # one more tick at the divider end of each corner gauge
-BRASS_FLOOR = 0.0                         # brass gradients (band edges, separators) keep at least
+CORNER_EXTRA_TICK = True                  # one more tick at the divider end of each corner gauge
+BRASS_FLOOR = 0.18                        # brass gradients (band edges, separators) keep at least
                                           #   this share of brass at their ends
-RULE_END_GAP = 6            # long rules stop this far from the dividers
-RULE_FLAT = 64              # flat middle of the flared rules
-RULE_STYLE = "short"                      # sections rules: "short", "long", "flare_out" (ends bend
+RULE_END_GAP = 6                          # long rules stop this far from the dividers
+RULE_FLAT = 64                            # flat middle of the flared rules
+RULE_STYLE = "flare_out"                  # sections rules: "short", "long", "flare_out" (ends bend
                                           #   towards the rim, aimed at the divider elbows),
-                                          #   "flare_in" (ends bend towards the band), "brass" (long,
-                                          #   brass gradient)
+                                          #   "flare_in" (ends bend towards the band), "long"; any with a
+                                          #   "_brass" suffix gets a brass gradient
 GLANCE_SECTIONS = (["alarm", "dnd"], ["disconnect", "lock"])   # sections mode: top pair, bottom pair
 GLANCE_PAIR_GAP = 8                       # split mode: gap between the two icons of a pair
                       # time centred in the band; condition text centred below it
