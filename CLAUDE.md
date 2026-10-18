@@ -1,6 +1,6 @@
 # Notes for Claude sessions
 
-Zepp OS watch faces for the Amazfit Balance 3 (480×480 round). Sextant is the first face. The canonical guide is `docs/development.md`, so read it before changing anything. This file is the short version of what a new session needs.
+Zepp OS watch faces for the Amazfit Balance 3 (480×480 round). Sextant is the first face; Twisted Sextant (draft) is Sextant's code and generator with overrides (`faces/twisted-sextant/design/variant.json`), so changes to Sextant apply to both. The canonical guide is `docs/development.md`, so read it before changing anything. This file is the short version of what a new session needs.
 
 ## How we work
 

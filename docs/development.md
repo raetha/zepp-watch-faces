@@ -24,6 +24,8 @@ This is the canonical guide for the repository. Read it before changing anything
 
 Faces import shared JS with relative paths, for example `import { isNight } from '../../../lib/js/sun';`. Zeus bundles these when building the face.
 
+**Variant faces.** Twisted Sextant (`faces/twisted-sextant/`) has no design or face code of its own. Its `design/generate.py` runs Sextant's generator with `SEXTANT_FACE_DIR` pointing at it and the overrides in its `design/variant.json`, and its `watchface/index.js` calls `sextantFace(LAYOUT)` from `faces/sextant/watchface/sextant.js`. Layout options the shared code reads: `edit_metrics` (the metrics editable slots offer) and `fixed_slots` (slots that aren't editable). Regenerate both faces after changing Sextant's design (`npm run assets`).
+
 ## One-time setup
 
 ```bash

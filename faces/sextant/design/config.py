@@ -9,8 +9,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]          # faces/sextant
 REPO = ROOT.parents[1]
 FONT_DIR = REPO / "fonts"
-ASSET_DIR = ROOT / "assets" / "common.r"
-LAYOUT_JS = ROOT / "watchface" / "layout.generated.js"
+# A face built from Sextant's generator (Twisted Sextant) sets SEXTANT_FACE_DIR to write
+# its own assets and layout; its design/variant.json holds its overrides.
+import os as _os0
+OUT_FACE = Path(_os0.environ["SEXTANT_FACE_DIR"]) if _os0.environ.get("SEXTANT_FACE_DIR") else ROOT
+ASSET_DIR = OUT_FACE / "assets" / "common.r"
+LAYOUT_JS = OUT_FACE / "watchface" / "layout.generated.js"
 
 # ----------------------------------------------------------------------------- screen
 W = 480
@@ -138,6 +142,8 @@ METRICS = {
     "weather":  ("Weather",        "#8AB4F8", False),
 }
 DEFAULT_SLOTS = ["calories", "heart", "distance", "steps", "floors", "weather"]   # TL, TR, BL, BM, BR, TM
+EDIT_METRICS = None                       # metrics the editable slots offer (None: all)
+FIXED_SLOTS = {}                          # {slot index: metric} for slots that aren't editable
 
 THEMES = {
     "color": dict(

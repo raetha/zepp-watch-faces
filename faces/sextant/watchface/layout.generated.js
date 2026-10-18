@@ -1468,6 +1468,8 @@ export const LAYOUT = {
     "floors",
     "weather"
   ],
+  "edit_metrics": null,
+  "fixed_slots": {},
   "weather_desc": [
     "PARTLY CLOUDY",
     "SHOWERS",

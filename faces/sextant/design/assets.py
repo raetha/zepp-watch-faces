@@ -840,6 +840,8 @@ def build_layout(tm, bg_paths):
     L["colors"] = colours
     L["metrics"] = {k: dict(title=v[0], progress=v[2]) for k, v in K.METRICS.items()}
     L["default_slots"] = K.DEFAULT_SLOTS
+    L["edit_metrics"] = K.EDIT_METRICS
+    L["fixed_slots"] = {str(k): v for k, v in K.FIXED_SLOTS.items()}
     L["weather_desc"] = [d for _, d in K.WEATHER]
     L["font"] = "fonts/" + F.TEXT_FONT_SUBSET_NAME
     L["_notes"] = dict(glance_mode=K.GLANCE_MODE, side_value_x=side_x, width_99999=w99, gap_99999_to_divider=side_gap,
