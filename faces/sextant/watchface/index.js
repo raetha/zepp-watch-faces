@@ -259,22 +259,28 @@ WatchFace({
       const box = L.slots[i];
       const slot = dyn.slots[i];
       const bound = BOUND_METRICS[id];
-      // CORNER_ROTATE mock: turned icon images, and glyph images laid along the gauge
+      // CORNER_ROTATE mock: the firmware turns the icon and per-character glyph images
       const rot = box.rot;
-      const iconAt = rot && rot.icon ? { x: rot.icon.x, y: rot.icon.y, dir: `icons/${theme}/r${rot.set}` }
-        : { x: box.icon.x, y: box.icon.y, dir: `icons/${theme}` };
-      slot.iconDir = iconAt.dir;
+      const turnIcon = rot && rot.icon && !(bound && bound.levelIcon);
+      const iconAt = turnIcon ? {
+        x: rot.icon.x, y: rot.icon.y, w: rot.icon.box, h: rot.icon.box, pos_x: rot.icon.pos, pos_y: rot.icon.pos,
+        center_x: rot.icon.box / 2, center_y: rot.icon.box / 2, angle: rot.deg,
+      } : { x: box.icon.x, y: box.icon.y };
+      const iconProps = (src) => {
+        const o = { src, show_level: NORMAL };
+        Object.keys(iconAt).forEach((k) => { o[k] = k === 'angle' ? iconAt[k] : px_(iconAt[k]); });
+        return o;
+      };
+      slot.iconDir = `icons/${theme}`;
       if (bound && bound.levelIcon) {
         // weather: the firmware picks the current condition's icon (no API level 1 property)
         slot.icon = this.w(hmUI.widget.IMG_LEVEL, {
           x: px_(iconAt.x), y: px_(iconAt.y),
-          image_array: L.weather_desc.map((_, k) => `${iconAt.dir}/${bound.levelIcon}_${k}.png`),
+          image_array: L.weather_desc.map((_, k) => `icons/${theme}/${bound.levelIcon}_${k}.png`),
           image_length: L.weather_desc.length, type: hmUI.data_type.WEATHER_CURRENT, show_level: NORMAL,
         });
       } else {
-        slot.icon = this.w(hmUI.widget.IMG, {
-          x: px_(iconAt.x), y: px_(iconAt.y), src: `${iconAt.dir}/${id}.png`, show_level: NORMAL,
-        });
+        slot.icon = this.w(hmUI.widget.IMG, iconProps(`icons/${theme}/${id}.png`));
       }
       if (bound && hmUI.data_type[bound.type] !== undefined) {
         this.w(hmUI.widget.TEXT_FONT, {
@@ -286,7 +292,8 @@ WatchFace({
       } else if (rot) {
         slot.rot = rot;
         slot.glyphs = [0, 1, 2, 3, 4, 5, 6, 7].map(() => this.w(hmUI.widget.IMG, {
-          x: 0, y: 0, w: px_(rot.q), h: px_(rot.q), src: 'rot/blank.png', show_level: NORMAL,
+          x: 0, y: 0, w: px_(rot.q), h: px_(rot.q), pos_x: 0, pos_y: 0,
+          center_x: px_(rot.q / 2), center_y: px_(rot.q / 2), angle: rot.deg, src: 'rot/blank.png', show_level: NORMAL,
         }));
         if (!SENSOR_METRICS[id]) this.setRotValue(slot, { text: '--' });
       } else {
@@ -433,7 +440,7 @@ WatchFace({
     const total = items.reduce((a, it) => a + it.w, 0);
     let s = -total / 2;
     let n = 0;
-    const dir = `rot/${this.theme}/${R.set}_`;
+    const dir = `rot/${this.theme}/`;
     items.forEach((it) => {
       const mid = s + it.w / 2;
       s += it.w;
@@ -441,7 +448,8 @@ WatchFace({
       if (!it.c || !code || n >= slot.glyphs.length) return;
       slot.glyphs[n++].setProperty(hmUI.prop.MORE, {
         x: px_(Math.round(R.vx + R.cos * mid - R.q / 2)), y: px_(Math.round(R.vy + R.sin * mid - R.q / 2)),
-        w: px_(R.q), h: px_(R.q), src: `${dir}${code}.png`,
+        w: px_(R.q), h: px_(R.q), pos_x: 0, pos_y: 0, center_x: px_(R.q / 2), center_y: px_(R.q / 2),
+        angle: R.deg, src: `${dir}${code}.png`,
       });
     });
     for (; n < slot.glyphs.length; n++) slot.glyphs[n].setProperty(hmUI.prop.SRC, 'rot/blank.png');
