@@ -481,6 +481,103 @@ def char_widths(px):
     return {c: round(F.advance(F.TEXT_FONT, px, c), 2) for c in chars}
 
 
+# ============================================================================= rotated corners (mock)
+ROT_SET = {0: "n", 1: "p", 2: "p", 4: "n"}     # slot -> rotation set (TL, TR, BL, BR)
+ROT_CHARS = {**{str(d): str(d) for d in range(10)}, ",": "comma", ".": "dot", "-": "dash", ":": "colon"}
+ROT_UNIT_CHARS = "kmi"
+
+
+def corner_alpha():
+    """Angle (deg) of the corner gauges' mid-point from the nearest centre line."""
+    t = list(G.segment_ticks(G.ring_segments()[0]))
+    # the extra tick extends the divider end by one step; each tick covers [z - 1, z] here
+    mid = (G.to_zepp(t[0]) + (K.TICK_STEP if K.CORNER_EXTRA_TICK else 0) + G.to_zepp(t[-1])) / 2 - 0.5
+    return 360 - mid
+
+
+def rot_rho(name):
+    return -corner_alpha() if name == "n" else corner_alpha()
+
+
+def rot_q(px):
+    return int(math.ceil(px * 1.7 / 2)) * 2
+
+
+def rot_glyph(c, px, rgb, rho):
+    """One glyph turned by rho (screen degrees, clockwise), centred on the value's ink
+    centre line, so every glyph of a value (and its unit) shares one anchor line."""
+    q = rot_q(K.VALUE_PX)
+    _, top, _, bot = F.ink_extent(F.TEXT_FONT, K.VALUE_PX, "0123456789")
+    img = Image.new("RGBA", (q * S, q * S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.text((q * S / 2, q * S / 2 - (top + bot) / 2 * S), c, font=F.pil_font(F.TEXT_FONT, px, S),
+           fill=tuple(rgb) + (255,), anchor="ms")
+    return down(img.rotate(-rho, resample=Image.BICUBIC, center=(q * S / 2, q * S / 2)))
+
+
+def rot_icon(img_hi, rho, size):
+    """A large icon render turned by rho and scaled to fit the rotated box."""
+    qi = int(math.ceil(size * (abs(math.cos(math.radians(rho))) + abs(math.sin(math.radians(rho)))) / 2)) * 2 + 2
+    k = img_hi.width / size
+    canvas = Image.new("RGBA", (int(qi * k), int(qi * k)), (0, 0, 0, 0))
+    canvas.alpha_composite(img_hi, ((canvas.width - img_hi.width) // 2, (canvas.height - img_hi.height) // 2))
+    canvas = canvas.rotate(-rho, resample=Image.BICUBIC)
+    return canvas.resize((qi, qi), Image.LANCZOS), qi
+
+
+def make_rot_assets():
+    if not K.CORNER_ROTATE:
+        return
+    Image.new("RGBA", (1, 1), (0, 0, 0, 0)).save((OUT / "rot").mkdir(parents=True, exist_ok=True) or OUT / "rot" / "blank.png")
+    for theme in THEME_NAMES:
+        t = K.THEMES[theme]
+        for name in ("n", "p"):
+            rho = rot_rho(name)
+            for c, code in ROT_CHARS.items():
+                save(rot_glyph(c, K.VALUE_PX, t["text"], rho), f"rot/{theme}/{name}_{code}.png")
+            for c in ROT_UNIT_CHARS:
+                save(rot_glyph(c, K.UNIT_PX, metric_rgb(theme, "distance"), rho), f"rot/{theme}/{name}_u_distance_{c}.png")
+            if K.CORNER_ROTATE == "text_icon":
+                big = K.ICON_PX * 4
+                for metric in list(METRIC_SVG):
+                    base = metric if metric in K.METRICS else "sun"
+                    svg = METRIC_SVG[metric]("#%02x%02x%02x" % metric_rgb(theme, base))
+                    save(rot_icon(centred(svg_to_image(svg, big), big), rho, K.ICON_PX)[0], f"icons/{theme}/r{name}/{metric}.png")
+                for i, (kind, _) in enumerate(K.WEATHER):
+                    small = retint(svg_to_image(weather_svg(kind), big), theme, t.get("metric"))
+                    save(rot_icon(centred(small, big), rho, K.ICON_PX)[0], f"icons/{theme}/r{name}/weather_{i}.png")
+
+
+def rotate_corners(centres, slots):
+    """CORNER_ROTATE: each corner takes the top- (or bottom-) middle layout turned about the
+    centre to its gauge's mid-angle, so its value keeps the same gap to the ticks."""
+    a = corner_alpha()
+    tm, bm = centres[5], centres[3]
+    for i, name in ROT_SET.items():
+        rho = rot_rho(name)
+        base = tm if i in (0, 1) else bm
+        ca, sa = math.cos(math.radians(rho)), math.sin(math.radians(rho))
+        def turn(y):
+            dy = y - K.C
+            return K.C - dy * sa, K.C + dy * ca
+        vx, vy = turn(base[2])
+        ix, iy = turn(base[1])
+        box = slots[i]
+        box["cx"] = round(vx, 1)
+        box["value"] = text_box(K.VALUE_PX, vx, vy, 132)            # upright fallback (bound metrics)
+        box["unit"]["y"] = round(box["unit"]["y"] - centres[i][2] + vy, 1)
+        box["icon"] = dict(x=round(ix - K.ICON_PX / 2), y=round(iy - K.ICON_PX / 2), size=K.ICON_PX)
+        rot = dict(set=name, cos=round(ca, 5), sin=round(sa, 5), vx=round(vx, 2), vy=round(vy, 2), q=rot_q(K.VALUE_PX))
+        if K.CORNER_ROTATE == "text_icon":
+            qi = rot_icon(Image.new("RGBA", (K.ICON_PX, K.ICON_PX)), rho, K.ICON_PX)[1]
+            rot["icon"] = dict(x=round(ix - qi / 2), y=round(iy - qi / 2))
+        box["rot"] = rot
+        mx, my = (vx + ix) / 2, (vy + iy) / 2
+        e = box["edit"]
+        box["edit"] = dict(x=round(mx - e["w"] / 2), y=round(my - e["h"] / 2), w=e["w"], h=e["h"])
+    return a
+
+
 def build_layout(tm, bg_paths):
     L = {}
     segs = G.ring_segments()
@@ -637,6 +734,8 @@ def build_layout(tm, bg_paths):
             unit=dict(y=round(u_y, 1), h=u_h, size=K.UNIT_PX),
             edit=dict(x=round(cx - 58), y=round(top_y), w=116, h=round(bot_y - top_y)),
         ))
+    if K.CORNER_ROTATE:
+        L["_notes_corner_angle"] = round(rotate_corners(centres, slots), 2)
     L["slots"] = slots
     L["char_widths"] = dict(value=char_widths(K.VALUE_PX), unit=char_widths(K.UNIT_PX), unit_gap=3)
 
@@ -842,6 +941,7 @@ def generate():
     bg = make_backgrounds()
     tm = make_time_digits()
     make_icons()
+    make_rot_assets()
     L = build_layout(tm, bg)
     make_edit_assets(L)
     write_layout(L)

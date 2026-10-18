@@ -30,6 +30,10 @@ const WEEKDAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 // ------------------------------------------------------------------ editor options
+/** Glyph image names for CORNER_ROTATE (see design/assets.py ROT_CHARS). */
+const ROT_CODES = { ',': 'comma', '.': 'dot', '-': 'dash', ':': 'colon' };
+for (let d = 0; d < 10; d++) ROT_CODES[String(d)] = String(d);
+
 function editType(type, title, preview, id) {
   return { type, title_en: title, title_sc: title, title_tc: title, preview, data: { id } };
 }
@@ -238,16 +242,21 @@ WatchFace({
       const box = L.slots[i];
       const slot = dyn.slots[i];
       const bound = BOUND_METRICS[id];
+      // CORNER_ROTATE mock: turned icon images, and glyph images laid along the gauge
+      const rot = box.rot;
+      const iconAt = rot && rot.icon ? { x: rot.icon.x, y: rot.icon.y, dir: `icons/${theme}/r${rot.set}` }
+        : { x: box.icon.x, y: box.icon.y, dir: `icons/${theme}` };
+      slot.iconDir = iconAt.dir;
       if (bound && bound.levelIcon) {
         // weather: the firmware picks the current condition's icon (no API level 1 property)
         slot.icon = this.w(hmUI.widget.IMG_LEVEL, {
-          x: px_(box.icon.x), y: px_(box.icon.y),
-          image_array: L.weather_desc.map((_, k) => `icons/${theme}/${bound.levelIcon}_${k}.png`),
+          x: px_(iconAt.x), y: px_(iconAt.y),
+          image_array: L.weather_desc.map((_, k) => `${iconAt.dir}/${bound.levelIcon}_${k}.png`),
           image_length: L.weather_desc.length, type: hmUI.data_type.WEATHER_CURRENT, show_level: NORMAL,
         });
       } else {
         slot.icon = this.w(hmUI.widget.IMG, {
-          x: px_(box.icon.x), y: px_(box.icon.y), src: `icons/${theme}/${id}.png`, show_level: NORMAL,
+          x: px_(iconAt.x), y: px_(iconAt.y), src: `${iconAt.dir}/${id}.png`, show_level: NORMAL,
         });
       }
       if (bound && hmUI.data_type[bound.type] !== undefined) {
@@ -257,6 +266,12 @@ WatchFace({
           align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
           type: hmUI.data_type[bound.type], unit_type: bound.unit, show_level: NORMAL,
         });
+      } else if (rot) {
+        slot.rot = rot;
+        slot.glyphs = [0, 1, 2, 3, 4, 5, 6, 7].map(() => this.w(hmUI.widget.IMG, {
+          x: 0, y: 0, w: px_(rot.q), h: px_(rot.q), src: 'rot/blank.png', show_level: NORMAL,
+        }));
+        if (!SENSOR_METRICS[id]) this.setRotValue(slot, { text: '--' });
       } else {
         slot.value = this.text(box.value, { color: C.text });
         slot.unit = this.text({ x: box.cx, y: box.unit.y, w: 40, h: box.unit.h, size: box.unit.size }, {
@@ -368,12 +383,43 @@ WatchFace({
       const sensor = this.sensor(def.sensor);
       const r = sensor ? def.read(sensor, ctx) : { text: '--', progress: null };
       this.setValue(i, slot, r, C);
-      if (r.icon) slot.icon.setProperty(hmUI.prop.SRC, `icons/${theme}/${r.icon}.png`);
+      if (r.icon) slot.icon.setProperty(hmUI.prop.SRC, `${slot.iconDir}/${r.icon}.png`);
       if (slot.progress) this.setTicks(slot, r.progress);
     });
   },
 
+  /** CORNER_ROTATE: lay the value (and unit) glyph images along the gauge's direction. */
+  setRotValue(slot, r) {
+    const R = slot.rot;
+    const cw = L.char_widths;
+    const items = [];
+    for (let k = 0; k < r.text.length; k++) items.push({ c: r.text[k], w: cw.value[r.text[k]] || cw.value['0'], u: false });
+    if (r.unit) {
+      items.push({ c: null, w: cw.unit_gap });
+      for (let k = 0; k < r.unit.length; k++) items.push({ c: r.unit[k], w: cw.unit[r.unit[k]] || 0, u: true });
+    }
+    const total = items.reduce((a, it) => a + it.w, 0);
+    let s = -total / 2;
+    let n = 0;
+    const dir = `rot/${this.theme}/${R.set}_`;
+    items.forEach((it) => {
+      const mid = s + it.w / 2;
+      s += it.w;
+      const code = it.u ? `u_${slot.id}_${it.c}` : ROT_CODES[it.c];
+      if (!it.c || !code || n >= slot.glyphs.length) return;
+      slot.glyphs[n++].setProperty(hmUI.prop.MORE, {
+        x: px_(Math.round(R.vx + R.cos * mid - R.q / 2)), y: px_(Math.round(R.vy + R.sin * mid - R.q / 2)),
+        w: px_(R.q), h: px_(R.q), src: `${dir}${code}.png`,
+      });
+    });
+    for (; n < slot.glyphs.length; n++) slot.glyphs[n].setProperty(hmUI.prop.SRC, 'rot/blank.png');
+  },
+
   setValue(i, slot, r, C) {
+    if (slot.rot) {
+      this.setRotValue(slot, r);
+      return;
+    }
     const box = L.slots[i];
     slot.value.setProperty(hmUI.prop.TEXT, r.text);
     if (!r.unit) {

@@ -93,6 +93,9 @@ RULE_STYLE = "flare_out"                  # sections rules: "short", "long", "fl
                                           #   towards the rim, aimed at the divider elbows),
                                           #   "flare_in" (ends bend towards the band), "long"; any with a
                                           #   "_brass" suffix gets a brass gradient
+CORNER_ROTATE = None                      # mock: corner values run along their gauge, at the rim, with
+                                          #   the icon inward (the top/bottom-middle layout turned to
+                                          #   the corner): None, "text" (icons upright) or "text_icon"
 GLANCE_SECTIONS = (["alarm", "dnd"], ["disconnect", "lock"])   # sections mode: top pair, bottom pair
 GLANCE_PAIR_GAP = 8                       # split mode: gap between the two icons of a pair
                       # time centred in the band; condition text centred below it
