@@ -37,19 +37,12 @@ import { textWidth } from '../../../lib/js/format';
  * default all) and L.fixed_slots ({slot index: metric} slots that aren't editable).
  */
 export function sextantFace(L) {
-  /** Time digits for the colour theme: 'color' (brass) or 'color_white'. */
-  const COLOR_TIME_STYLE = 'color';
-  /**
-   * How the firmware interprets ARC_PROGRESS `radius`: true = centre of the stroke
-   * (ticks keep a common outer edge either way thanks to per-tick radii).
-   */
-  const ARC_RADIUS_IS_CENTER = true;
 
   const WEEKDAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
   const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
   // ------------------------------------------------------------------ editor options
-  /** Glyph image names for CORNER_ROTATE (see design/assets.py ROT_CHARS). */
+  /** Glyph image names for turned corners (see design/assets.py ROT_CHARS). */
   const ROT_CODES = { ',': 'comma', '.': 'dot', '-': 'dash', ':': 'colon', '%': 'pct', '/': 'slash', '°': 'deg' };
   for (let d = 0; d < 10; d++) ROT_CODES[String(d)] = String(d);
   const rotCode = (c) => ROT_CODES[c] || (c >= 'A' && c <= 'Z' ? `cap_${c}` : c);
@@ -271,7 +264,7 @@ export function sextantFace(L) {
       this.w(hmUI.widget.IMG, { x: 0, y: 0, src: C.bg, show_level: NORMAL });
       this.editBg.setProperty(hmUI.prop.SRC, `edit/bg_${theme}.png`);
 
-      // fixed brass compass markers (MARKERS brass2 / brass8) and section rules
+      // compass markers not tied to a gauge (none at present) and the section rules
       L.markers.fixed.forEach((m) => {
         this.w(hmUI.widget.IMG, { x: px_(m.x), y: px_(m.y), src: `marker/${theme}/m${m.k}_brass.png`, show_level: NORMAL });
       });
@@ -286,7 +279,7 @@ export function sextantFace(L) {
         const seg = g.segments[i];
         const unit = C.unit[id];
         const ticks = seg.ticks.map((t) => {
-          const r = ARC_RADIUS_IS_CENTER ? t.r_center : t.r_outer;
+          const r = t.r_center;                // ARC_PROGRESS radius is the centre of the stroke
           // whole-degree angles only: the firmware truncates arc angles (see geometry.tick_arc)
           const base = {
             center_x: px_(240), center_y: px_(240), radius: px_(r), line_width: px_(t.len),
@@ -299,7 +292,7 @@ export function sextantFace(L) {
         let marker = null;
         if (seg.marker) {
           const m = seg.marker;
-          const base = m.base === 'brass' ? `m${m.k}_brass` : `m${m.k}_dim_${id}`;
+          const base = `m${m.k}_brass`;
           marker = {
             widget: this.w(hmUI.widget.IMG, { x: px_(m.x), y: px_(m.y), src: `marker/${theme}/${base}.png`, show_level: NORMAL }),
             k: m.k, base, after: m.after, lit: false,
@@ -313,7 +306,7 @@ export function sextantFace(L) {
         const box = L.slots[i];
         const slot = dyn.slots[i];
         const bound = BOUND_METRICS[id];
-        // CORNER_ROTATE mock: the firmware turns the icon and per-character glyph images
+        // turned corners (Twisted Sextant): the firmware turns the icon and the glyph images
         const rot = box.rot;
         const turnIcon = rot && rot.icon && !(bound && bound.levelIcon);
         const iconAt = turnIcon ? {
@@ -387,10 +380,9 @@ export function sextantFace(L) {
       dyn.battery = this.text(L.battery.text, { color: C.text });
 
       // time
-      const timeStyle = theme === 'color' ? COLOR_TIME_STYLE : theme;
       // with no condition text (no weather slot) the time centres in the band by itself
       const hasDesc = this.settings.slots.indexOf('weather') >= 0;
-      this.timeWidgets(`time/${timeStyle}`, hasDesc ? L.time : { ...L.time, y: L.time.y_alone }, NORMAL);
+      this.timeWidgets(`time/${theme}`, hasDesc ? L.time : { ...L.time, y: L.time.y_alone }, NORMAL);
       // condition text: pre-rendered names picked by the firmware (current conditions).
       // Only shown when a slot shows weather: without the temperature it's out of context.
       if (this.settings.slots.indexOf('weather') >= 0) this.w(hmUI.widget.IMG_LEVEL, {
@@ -513,7 +505,7 @@ export function sextantFace(L) {
       });
     },
 
-    /** CORNER_ROTATE: lay the value (and unit) glyph images along the gauge's direction. */
+    /** Turned corners: lay the value (and unit) glyph images along the gauge's direction. */
     setRotValue(slot, r) {
       const R = slot.rot;
       const cw = L.char_widths;

@@ -36,6 +36,7 @@ Zepp OS watch faces for the Amazfit Balance 3 (480×480 round). Sextant is the f
 - Faces target API level 4.2 (`@zos/*` modules), the highest the Balance 2 emulator image runs. **When Zepp publishes a Balance 3 emulator image, move to 4.4 (or whatever is current).**
 - Face code can't read floors, the current weather, UV, humidity or air quality at any API level. They're bound widgets (`TEXT_FONT` / `IMG_LEVEL` with a data type).
 - The emulator only feeds test values to steps, calories, heart rate and battery reads; the other sensors read 0 there. `DEMO_VALUES` (a generator override) fakes readings for mock-ups.
+- Both designs are locked (2026-10-18): there are no switches for alternative designs. Try ideas with `SEXTANT_OVERRIDES` mock-ups; the dropped alternatives are listed in `faces/sextant/docs/design.md` and live in git history.
 - Editor type numbers come from `METRIC_TYPE` in `lib/js/metrics.js` and must never change; append new metrics.
 - Text boxes must sit on whole pixels. Arc `radius` is the centre of the stroke.
 - Arc angles are truncated to whole degrees, and arcs under 1° don't draw. Ticks use `geometry.tick_arc()`.

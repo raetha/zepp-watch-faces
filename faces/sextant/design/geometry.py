@@ -7,7 +7,7 @@ zepp = pil + 90.
 import math
 from .config import (C, W, BAND_T, BAND_B, BEND, BAND_FLARE_SLOPE, SEP_X, SEP_INSET,
                      SEP_FLARE_RUN, DIV_X, ELBOW_Y, RIM_ANGLE, RING_R, TICK_STEP,
-                     SEG_GAP, GAUGE_TRACK_R, GLANCE_R, GLANCE_SIZE, DIVIDER_RADIAL)
+                     SEG_GAP, GAUGE_TRACK_R)
 
 
 def to_zepp(a):
@@ -35,9 +35,9 @@ def band_polygon(scale=1.0, steps=241):
 
 
 # ----------------------------------------------------------------------------- dividers
-# With DIVIDER_RADIAL the bend moves to where the radius at RIM_ANGLE crosses the vertical
-# part, so the outer run lies on that radius, parallel to the bezel ticks.
-DIV_ELBOW_Y = (C + (DIV_X[0] - C) * math.tan(math.radians(RIM_ANGLE))) if DIVIDER_RADIAL else ELBOW_Y
+# The bend sits where the radius at RIM_ANGLE crosses the vertical part, so the outer run
+# lies on that radius, parallel to the bezel ticks.
+DIV_ELBOW_Y = C + (DIV_X[0] - C) * math.tan(math.radians(RIM_ANGLE))
 
 
 def divider_points(side, top):
@@ -132,18 +132,6 @@ def segment_ticks(seg):
     return ticks if a0 <= a1 else list(reversed(ticks))
 
 
-def _divider_angle_at(r, side):
-    """PIL angle where a top divider (centre line) crosses the circle of radius r."""
-    pts = divider_points(side, True)
-    for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
-        n = 4000
-        for i in range(n + 1):
-            x, y = x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n
-            if math.hypot(x - C, y - C) >= r:
-                return math.degrees(math.atan2(y - C, x - C)) % 360
-    raise ValueError("divider never reaches radius")
-
-
 def tick_arc(pil_deg):
     """Integer (start, end) Zepp angles for a 1-degree tick at a whole-degree position.
 
@@ -157,17 +145,3 @@ def tick_arc(pil_deg):
         return None
     away_clockwise = (0 < z < 90) or (180 < z < 270)
     return (z, z + 1) if away_clockwise else (z - 1, z)
-
-
-def glance_positions(n=4, stroke=2):
-    """n icon centres on the GLANCE_R arc, with equal gaps between the dividers' inner
-    stroke edges and the icons, and between neighbouring icons (gaps measured along the arc)."""
-    lo, hi = _divider_angle_at(GLANCE_R, "L"), _divider_angle_at(GLANCE_R, "R")
-    span = math.radians(hi - lo) * GLANCE_R - stroke            # arc length between stroke edges
-    gap = (span - n * GLANCE_SIZE) / (n + 1)
-    out = []
-    for k in range(n):
-        s = stroke / 2 + gap * (k + 1) + GLANCE_SIZE * (k + 0.5)
-        a = math.radians(lo) + s / GLANCE_R
-        out.append((C + GLANCE_R * math.cos(a), C + GLANCE_R * math.sin(a)))
-    return out

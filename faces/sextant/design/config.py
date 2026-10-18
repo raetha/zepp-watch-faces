@@ -34,9 +34,7 @@ SEP_FLARE_RUN = 30                        # vertical extent of each flared end
 
 # ----------------------------------------------------------------------------- panel dividers
 DIV_X = (186, 294)                        # vertical part of the dividers
-ELBOW_Y = 110                             # complication layout reference (value tops sit here)
-DIVIDER_RADIAL = True  # bend the dividers where their outer run points at the centre,
-                                          # so it is parallel to the bezel ticks (else bend at ELBOW_Y)
+ELBOW_Y = 110                             # complication layout reference (corner value tops sit here)
 RIM_ANGLE = 248.5                         # top-left divider heads for this rim angle (PIL deg): centred
                                           #   in the gap between the gauges' end ticks (was 248.12)
 DIV_START_GAP = 12                        # dividers stop this far from the band edge
@@ -46,70 +44,35 @@ RING_R = 233                              # outer edge of the gauge ticks
 TICK_MINOR, TICK_MAJOR = 6, 10            # tick lengths (inward from RING_R)
 TICK_STEP = 2                             # degrees between ticks
 TICK_MAJOR_EVERY = 10                     # a long tick every N degrees
-TICK_WIDTH = 2.6
 SEG_GAP = 3.25                            # degrees of empty ring at each end of a gauge (was 6.5)
 GAUGE_TRACK_R = 230                       # radius used to find where edges meet the ring
 
 # ----------------------------------------------------------------------------- glances
-GLANCE_R = 205                            # icons ride this arc, evenly spaced between the two dividers
 GLANCE_SIZE = 22
 GLANCES = ["disconnect", "dnd", "alarm", "lock"]
 
 # ----------------------------------------------------------------------------- type
 TIME_SIDE_GAP = 12                        # time size is solved so its widest value sits this far from each separator
-# Layout: date left of the time, six complications (top-middle defaults to weather).
-# The earlier pre-release layout (date top-middle, weather in the band, compass scale)
-# is kept on the git branch archive/previous-layout.
-# ---- mock-up switches (2026-10-17 review); defaults reproduce the 1.0.0 design
-TIME_FONT_STYLE = "condensed"              # "regular" (Roboto) or "condensed" (Roboto Condensed)
-DATE_LARGE = False                        # weekday and month at the day's size
-SECTION_LAYOUT = None                     # None: status icons + condition in the band
-                                          # "glances_bottom": icons under the band, condition text
-                                          #   as the outer row of the top (weather) section
-                                          # "glances_top": icons over the band, weather + condition
-                                          #   in the bottom section
-                                          # "corners": icons in the band's four corners around the
-                                          #   time, weather + condition in the bottom section
-SECTION_GAP = 10                          # band edge -> status-icon row in the section layouts
-VALUE_BOX_DESCENDER = True                # value boxes include a comma's depth (values above icons)
-CORNER_TIME_CLEAR = 3                     # corners mode: least gap from an icon to the time's ink
-TIME_MIN_VGAP = 16                        # time alone in the band: least gap to the band edges
-GLANCE_MODE = "sections"                  # "row": status icons in a row above the time
-                                          # "split": two each side of the condition text
-                                          # "sections": a pair at the band in the top- and
-                                          #   bottom-middle sections (GLANCE_SECTIONS)
-GLANCE_ROW_GAP = 14                       # row mode: gap between icons
-GLANCE_SPLIT = (["disconnect", "lock"], ["dnd", "alarm"])   # split mode: left pair, right pair
-SECTION_RULES = True                      # sections mode: a rule between the status pair and the metric
-SECTION_RULE_W = 44
-SEPARATOR_BRASS = True                    # band separators get the band edges' brass gradient
-MARKERS = "brass6"                        # "progress": top/bottom markers, dim until their gauge passes
-                                          # "brass2": north/south markers, always brass
-                                          # "brass8": brass markers at all eight compass points
-                                          # "brass6": N, S and diagonals: brass until their gauge
-                                          #   passes them, then the gauge's colour
-DIAG_AT_GAUGE_MID = False                 # diagonal markers at the corner gauges' mid-points (43.5 deg)
-                                          #   instead of 45.5 (Twisted Sextant: they point at the turned values)
-CORNER_EXTRA_TICK = True                  # one more tick at the divider end of each corner gauge
+# Layout: date left of the time, the time and condition text in the band, six
+# complications (top-middle defaults to weather), and the status icons in pairs at the band
+# in the top- and bottom-middle sections. Time and text are Roboto Condensed.
+SECTION_GAP = 10                          # band edge -> status-icon pair
+GLANCE_SECTIONS = (["alarm", "dnd"], ["disconnect", "lock"])   # top pair, bottom pair
+GLANCE_PAIR_GAP = 14                      # gap between the two icons of a pair
+RULE_FLAT = 64                            # rule between each pair and its metric: flat middle,
+RULE_END_GAP = 6                          #   ends bent towards the rim (aimed at the divider
+                                          #   elbows), stopping this far from the dividers
 BRASS_FLOOR = 0.18                        # brass gradients (band edges, separators) keep at least
                                           #   this share of brass at their ends
-RULE_END_GAP = 6                          # long rules stop this far from the dividers
-RULE_FLAT = 64                            # flat middle of the flared rules
-RULE_STYLE = "flare_out"                  # sections rules: "short", "long", "flare_out" (ends bend
-                                          #   towards the rim, aimed at the divider elbows),
-                                          #   "flare_in" (ends bend towards the band), "long"; any with a
-                                          #   "_brass" suffix gets a brass gradient
-CORNER_ROTATE = None                      # mock: corner values run along their gauge, at the rim, with
-                                          #   the icon inward (the top/bottom-middle layout turned to
-                                          #   the corner): None, "text" (icons upright) or "text_icon"
-GLANCE_SECTIONS = (["alarm", "dnd"], ["disconnect", "lock"])   # sections mode: top pair, bottom pair
-GLANCE_PAIR_GAP = 8                       # split mode: gap between the two icons of a pair
-                      # time centred in the band; condition text centred below it
-TIME_PX = None                            # (solved by the generator; Roboto Regular, normal width, tabular cells)
+# face options (Twisted Sextant sets these in its design/variant.json)
+TURN_CORNERS = False                      # corner values run along their gauges, at the rim, with
+                                          #   the icon inward (the top/bottom-middle layout turned)
+DIAG_AT_GAUGE_MID = False                 # diagonal markers at the corner gauges' mid-points (43.5 deg)
+                                          #   instead of 45.5, so they point at turned values
+TIME_PX = None                            # (solved by the generator; tabular cells)
 VALUE_PX = 40                             # complication values (Roboto Condensed Regular)
 UNIT_PX = 20
 DATE_SMALL_PX, DATE_DAY_PX = 32, 42
-SIDE_VALUE_PX = 42                        # temperature
 BATTERY_VALUE_PX = 40
 DESC_PX = 22
 ICON_PX = 32
@@ -118,7 +81,6 @@ VISIBLE_ICON_GAP = 13.5                   # the same gap measured on the drawing
 LINE_W = 3                                # dividers, separators, band edges (2 was too faint on the watch)
 WEATHER_ICON_PX = 38
 BATTERY_ICON_PX = 34
-SIDE_BLOCK_GAP = 12
 
 # ----------------------------------------------------------------------------- colours
 def hexrgb(h):
@@ -169,7 +131,6 @@ THEMES = {
         desc=(255, 214, 120), divider=(52, 59, 68),
         band=((20, 34, 58), (8, 13, 24)), glow_lo=(20, 24, 30),
         time=((236, 205, 140), (196, 150, 72)),          # brass gradient (top -> bottom)
-        time_alt_white=((255, 255, 255), (196, 204, 214)),
         aod_time=(214, 176, 112), aod_text=(180, 186, 194),
         dim_factor=0.30,
     ),
@@ -228,7 +189,7 @@ WEATHER = [
 
 
 # ----------------------------------------------------------------------------- overrides
-# SEXTANT_OVERRIDES='{"TIME_FONT_STYLE": "condensed"}' python3 design/generate.py
+# SEXTANT_OVERRIDES='{"VALUE_PX": 42}' python3 design/generate.py
 # builds a variant without editing this file (used for side-by-side mock-ups).
 import json as _json
 import os as _os

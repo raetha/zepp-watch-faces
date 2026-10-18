@@ -80,11 +80,12 @@ def draw_dividers(d, theme):
 
 
 def draw_separators(d, col, theme=None):
-    """Band separators. With SEPARATOR_BRASS (and a theme) they take the band edges' look:
-    brass in the middle fading to the dim edge colour at the ends."""
+    """Band separators. With a theme they take the band edges' look: brass in the middle
+    fading towards the dim edge colour at the ends (BRASS_FLOOR keeps some brass). Without
+    one (the always-on screen) they're a plain line in col."""
     for i in (0, 1):
         pts = G.separator_points(i)
-        if not (K.SEPARATOR_BRASS and theme):
+        if not theme:
             d.line([(P(x), P(y)) for x, y in pts], fill=col, width=P(K.LINE_W), joint="curve")
             continue
         t = K.THEMES[theme]
@@ -98,34 +99,17 @@ def draw_separators(d, col, theme=None):
             d.line([P(xa), P(ya), P(xb), P(yb)], fill=lerp(t["glow_lo"], t["accent"], K.BRASS_FLOOR + (1 - K.BRASS_FLOOR) * max(0, f) ** 1.8), width=P(K.LINE_W))
 
 
-def tick_line(d, deg, col, length, r_out=K.RING_R, width=K.TICK_WIDTH):
-    ca, sa = math.cos(math.radians(deg)), math.sin(math.radians(deg))
-    d.line([P(K.C + r_out * ca), P(K.C + r_out * sa),
-            P(K.C + (r_out - length) * ca), P(K.C + (r_out - length) * sa)], fill=col, width=P(width))
-
-
-
-
 RULE_PTS = {}
 
 
 def rule_points(y, top):
-    """Polyline for the rule between a status pair and its metric (RULE_STYLE).
-    short: a SECTION_RULE_W rule. long: reaches RULE_END_GAP from the dividers' vertical parts.
-    flare_out / flare_in: a flat middle whose ends bend toward the rim / the band, along the
-    line from the flat end to the divider's elbow (mirrored for flare_in)."""
-    st = K.RULE_STYLE.replace("_brass", "")
-    edge = G.DIV_X[0] + K.LINE_W / 2 + K.RULE_END_GAP          # where every long rule stops
-    if st == "short":
-        h = K.SECTION_RULE_W / 2
-        return [(K.C - h, y), (K.C + h, y)]
-    if st == "long":
-        return [(edge, y), (K.W - edge, y)]
+    """Polyline for the rule between a status pair and its metric: a flat middle (RULE_FLAT)
+    whose ends bend towards the rim along the line from the flat end to the divider's elbow,
+    stopping RULE_END_GAP from the dividers' vertical parts."""
+    edge = G.DIV_X[0] + K.LINE_W / 2 + K.RULE_END_GAP
     ey = G.DIV_ELBOW_Y if top else K.W - G.DIV_ELBOW_Y
     fx = K.C - K.RULE_FLAT / 2                                  # flat part's left end
     slope = (ey - y) / (G.DIV_X[0] - fx)                        # dy per unit x toward the elbow
-    if st == "flare_in":
-        slope = -slope
     yl = y + slope * (edge - fx)
     return [(edge, yl), (fx, y), (K.W - fx, y), (K.W - edge, yl)]
 
@@ -138,18 +122,7 @@ def rule_image(pts, theme, x0, y0):
     img = Image.new("RGBA", (w * S, h * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     q = [(P(x - x0), P(y - y0)) for x, y in pts]
-    if "brass" not in K.RULE_STYLE:
-        d.line(q, fill=t["divider"] + (255,), width=P(K.LINE_W), joint="curve")
-    else:
-        half = (max(xs) - min(xs)) / 2
-        for (xa, ya), (xb, yb) in zip(pts, pts[1:]):
-            n = 40
-            for k in range(n):
-                a = (xa + (xb - xa) * k / n, ya + (yb - ya) * k / n)
-                b = (xa + (xb - xa) * (k + 1) / n, ya + (yb - ya) * (k + 1) / n)
-                f = 1 - abs((a[0] + b[0]) / 2 - K.C) / half
-                col = lerp(t["glow_lo"], t["accent"], K.BRASS_FLOOR + (1 - K.BRASS_FLOOR) * max(0, f) ** 1.8)
-                d.line([P(a[0] - x0), P(a[1] - y0), P(b[0] - x0), P(b[1] - y0)], fill=col, width=P(K.LINE_W))
+    d.line(q, fill=t["divider"] + (255,), width=P(K.LINE_W), joint="curve")
     r = P(K.LINE_W / 2)
     for x, y in (q[0], q[-1]):                                  # round caps
         d.ellipse([x - r, y - r, x + r, y + r], fill=img.getpixel((max(0, min(img.width - 1, int(x))), max(0, min(img.height - 1, int(y))))))
@@ -176,31 +149,26 @@ def marker_image(zepp_deg, col):
 
 
 def compass_angles():
-    """Marker angles (zepp degrees). The diagonals sit half a degree off 45 so the
-    whole-degree ticks either side are equally far away."""
-    # DIAG_AT_GAUGE_MID: the diagonals move to the corner gauges' mid-points (43.5 deg), on
-    # the line through the turned corner values (Twisted Sextant)
+    """Marker angles (zepp degrees): north, south and the four diagonals. The diagonals sit
+    half a degree off 45 so the whole-degree ticks either side are equally far away; with
+    DIAG_AT_GAUGE_MID they sit at the corner gauges' mid-points instead (43.5 deg), on the
+    line through the turned corner values (Twisted Sextant)."""
     d = corner_alpha() if K.DIAG_AT_GAUGE_MID else 45.5
-    return {"progress": [0, 180], "brass2": [0, 180], "brass6": [0, d, 180 - d, 180, 180 + d, 360 - d],
-            "brass8": [0, d, 90, 180 - d, 180, 180 + d, 270, 360 - d]}[K.MARKERS]
+    return [0, d, 180 - d, 180, 180 + d, 360 - d]
 
 
 def make_markers():
     """Triangle markers (tip towards the centre) at compass_angles(). Images, because the
-    firmware draws arcs only in whole degrees. For each marker k and theme:
-    m{k}_brass, and m{k}_lit_{metric} / m{k}_dim_{metric} for markers that follow a gauge."""
+    firmware draws arcs only in whole degrees. For each marker k and theme: m{k}_brass
+    (until its gauge's fill passes it) and m{k}_lit_{metric} (after)."""
     out = []
     for k, ang in enumerate(compass_angles()):
         for theme in THEME_NAMES:
             t = K.THEMES[theme]
             img, x0, y0 = marker_image(ang, t["accent"])
             save(img, f"marker/{theme}/m{k}_brass.png")
-            if K.MARKERS in ("progress", "brass6"):
-                for metric in K.METRICS:
-                    rgb = metric_rgb(theme, metric)
-                    save(marker_image(ang, rgb)[0], f"marker/{theme}/m{k}_lit_{metric}.png")
-                    if K.MARKERS == "progress":
-                        save(marker_image(ang, lerp((0, 0, 0), rgb, t["dim_factor"]))[0], f"marker/{theme}/m{k}_dim_{metric}.png")
+            for metric in K.METRICS:
+                save(marker_image(ang, metric_rgb(theme, metric))[0], f"marker/{theme}/m{k}_lit_{metric}.png")
         out.append(dict(k=k, a=ang, x=x0, y=y0))
     return out
 
@@ -233,20 +201,12 @@ def make_backgrounds():
 
 # ============================================================================= time digits
 def TF():
-    """The time-digit font for this build."""
-    return F.TEXT_FONT if K.TIME_FONT_STYLE == "condensed" else F.TIME_FONT
+    """The time-digit font: Roboto Condensed, the same as the text."""
+    return F.TEXT_FONT
 
 
 def solve_time_px():
-    """Largest time size whose widest value keeps TIME_SIDE_GAP to each separator (and, when
-    the time is alone in the band, TIME_MIN_VGAP to the band edges)."""
-    def fits_height(px):
-        if not K.SECTION_LAYOUT:
-            return True
-        ex = [F.ink_extent(TF(), px, ch) for ch in "0123456789"]
-        ink = max(e[3] for e in ex) - min(e[1] for e in ex)
-        return ink <= (K.BAND_IN[1] - K.BAND_IN[0]) - 2 * K.TIME_MIN_VGAP
-
+    """Largest time size whose widest value keeps TIME_SIDE_GAP to each separator."""
     def gap(px):
         f = F.pil_font(str(TF()), px, S)
         adv = f.getlength("0", features=["tnum"]) / S
@@ -257,7 +217,7 @@ def solve_time_px():
     lo, hi = 60, 200
     while hi - lo > 1:
         mid = (lo + hi) // 2
-        lo, hi = (mid, hi) if gap(mid) >= K.TIME_SIDE_GAP and fits_height(mid) else (lo, mid)
+        lo, hi = (mid, hi) if gap(mid) >= K.TIME_SIDE_GAP else (lo, mid)
     return lo
 
 
@@ -281,7 +241,6 @@ def make_time_digits():
     f = F.pil_font(str(TF()), K.TIME_PX, S)
     styles = {
         "color": K.THEMES["color"]["time"],
-        "color_white": K.THEMES["color"]["time_alt_white"],
         "mono": K.THEMES["mono"]["time"],
         "night": K.THEMES["night"]["time"],
     }
@@ -326,36 +285,6 @@ def make_time_digits():
 
 
 # ============================================================================= icons
-def glance_x(name):
-    """Centre x of a status icon in the band (GLANCE_MODE "row" or "split")."""
-    gs = K.GLANCE_SIZE
-    if K.GLANCE_MODE == "row":
-        n = len(K.GLANCES)
-        row_w = n * gs + (n - 1) * K.GLANCE_ROW_GAP
-        return K.C - row_w / 2 + K.GLANCES.index(name) * (gs + K.GLANCE_ROW_GAP) + gs / 2
-    # split: each pair centred between the separator and the widest condition name
-    widest = max(F.advance(F.TEXT_FONT, K.DESC_PX, d) for _, d in K.WEATHER if d)
-    inner = K.C - widest / 2 - 6                 # keep 6px from the text
-    outer = K.SEP_X[0] + 4                       # and clear of the separator stroke
-    pair_w = 2 * gs + K.GLANCE_PAIR_GAP
-    left_cx = (outer + inner) / 2
-    for side, pair in enumerate(K.GLANCE_SPLIT):
-        if name in pair:
-            cx = left_cx if side == 0 else K.W - left_cx
-            return cx - pair_w / 2 + pair.index(name) * (gs + K.GLANCE_PAIR_GAP) + gs / 2
-    raise ValueError(name)
-
-
-def band_colour_at(theme, x):
-    """The band's (noise-free) gradient colour at x, or black for themes without a band fill."""
-    band = K.THEMES[theme]["band"]
-    if band is None:
-        return (0, 0, 0)
-    f = (abs(x / K.W - 0.5) * 2) ** 1.4
-    return lerp(band[0], band[1], f)
-
-
-
 def centred(img, size):
     """The icon's drawing centred in a size x size box. Icon art doesn't always sit in the
     middle of its canvas, which made the icon-to-value gaps look uneven."""
@@ -399,18 +328,10 @@ def make_icons():
             save(centred(svg_to_image(BATTERY_SVG("#%02x%02x%02x" % rgb), K.BATTERY_ICON_PX), K.BATTERY_ICON_PX), f"battery/{theme}/{level}.png")
         for name, svg in GLANCE_SVG.items():
             img = centred(retint(svg_to_image(svg, K.GLANCE_SIZE), theme, K.THEMES[theme].get("metric")), K.GLANCE_SIZE)
-            # the active icon covers the always-drawn off icon, so it sits on a disc of the
-            # band colour at its position (the disc then doesn't show)
-            if K.GLANCE_MODE == "sections":         # on the black section panels
-                disc = (0, 0, 0)
-            elif K.SECTION_LAYOUT == "corners":     # in the band, near the separators
-                disc = band_colour_at(theme, K.SEP_X[0] + 22 if K.GLANCES.index(name) % 2 == 0 else K.SEP_X[1] - 22)
-            elif K.SECTION_LAYOUT:                     # on a black panel
-                disc = (0, 0, 0)
-            else:
-                disc = band_colour_at(theme, glance_x(name))
+            # the active icon covers the always-drawn off icon, so it sits on a black disc
+            # (the colour of the section panels it's on, so the disc doesn't show)
             backed = Image.new("RGBA", img.size, (0, 0, 0, 0))
-            ImageDraw.Draw(backed).ellipse([0, 0, img.width - 1, img.height - 1], fill=disc + (255,))
+            ImageDraw.Draw(backed).ellipse([0, 0, img.width - 1, img.height - 1], fill=(0, 0, 0, 255))
             backed.alpha_composite(img)
             save(backed, f"status/{theme}/{name}.png")
             off = centred(retint(svg_to_image(GLANCE_OFF_SVG[name], K.GLANCE_SIZE), theme, K.THEMES[theme].get("muted_icon")), K.GLANCE_SIZE)
@@ -425,7 +346,7 @@ def make_icons():
 def make_desc_images(box):
     """One image per weather condition and theme, for an IMG_LEVEL bound to WEATHER_CURRENT.
 
-    Face code can't read the current condition on API level 1, but a bound IMG_LEVEL is
+    Face code can't read the current condition at any API level, but a bound IMG_LEVEL is
     given it by the firmware, so the condition name is drawn as images."""
     asc, desc = F.vmetrics(str(F.TEXT_FONT))
     px = K.DESC_PX
@@ -486,7 +407,7 @@ def char_widths(px):
     return {c: round(F.advance(F.TEXT_FONT, px, c), 2) for c in chars}
 
 
-# ============================================================================= rotated corners (mock)
+# ============================================================================= turned corners (Twisted Sextant)
 ROT_SET = {0: "n", 1: "p", 2: "p", 4: "n"}     # slot -> rotation set (TL, TR, BL, BR)
 ROT_CHARS = {**{str(d): str(d) for d in range(10)}, ",": "comma", ".": "dot", "-": "dash", ":": "colon",
              "%": "pct", "/": "slash", "°": "deg"}
@@ -501,7 +422,7 @@ def corner_alpha():
     """Angle (deg) of the corner gauges' mid-point from the nearest centre line."""
     t = list(G.segment_ticks(G.ring_segments()[0]))
     # the extra tick extends the divider end by one step; each tick covers [z - 1, z] here
-    mid = (G.to_zepp(t[0]) + (K.TICK_STEP if K.CORNER_EXTRA_TICK else 0) + G.to_zepp(t[-1])) / 2 - 0.5
+    mid = (G.to_zepp(t[0]) + K.TICK_STEP + G.to_zepp(t[-1])) / 2 - 0.5
     return 360 - mid
 
 
@@ -527,8 +448,8 @@ def rot_glyph(c, px, rgb):
 
 
 def make_rot_assets():
-    """CORNER_ROTATE: one image per character and theme (the firmware rotates them)."""
-    if not K.CORNER_ROTATE:
+    """TURN_CORNERS: one image per character and theme (the firmware rotates them)."""
+    if not K.TURN_CORNERS:
         return
     for theme in THEME_NAMES:
         t = K.THEMES[theme]
@@ -541,8 +462,9 @@ def make_rot_assets():
 
 
 def rotate_corners(centres, slots):
-    """CORNER_ROTATE: each corner takes the top- (or bottom-) middle layout turned about the
-    centre to its gauge's mid-angle, so its value keeps the same gap to the ticks."""
+    """TURN_CORNERS: each corner takes the top- (or bottom-) middle layout turned about the
+    centre to its gauge's mid-angle, so its value keeps the same gap to the ticks. The icon
+    and the value's glyphs are turned by the firmware."""
     a = corner_alpha()
     tm, bm = centres[5], centres[3]
     for i, name in ROT_SET.items():
@@ -560,10 +482,9 @@ def rotate_corners(centres, slots):
         box["unit"]["y"] = round(box["unit"]["y"] - centres[i][2] + vy, 1)
         box["icon"] = dict(x=round(ix - K.ICON_PX / 2), y=round(iy - K.ICON_PX / 2), size=K.ICON_PX)
         rot = dict(deg=round(rho, 2), cos=round(ca, 5), sin=round(sa, 5), vx=round(vx, 2), vy=round(vy, 2), q=rot_q(K.VALUE_PX))
-        if K.CORNER_ROTATE == "text_icon":
-            # the icon turns too: a widget box big enough for the turned drawing
-            qi = int(math.ceil(K.ICON_PX * (abs(ca) + abs(sa)) / 2)) * 2 + 2
-            rot["icon"] = dict(x=round(ix - qi / 2), y=round(iy - qi / 2), box=qi, pos=(qi - K.ICON_PX) // 2)
+        # the icon's widget box is big enough for the turned drawing
+        qi = int(math.ceil(K.ICON_PX * (abs(ca) + abs(sa)) / 2)) * 2 + 2
+        rot["icon"] = dict(x=round(ix - qi / 2), y=round(iy - qi / 2), box=qi, pos=(qi - K.ICON_PX) // 2)
         box["rot"] = rot
         mx, my = (vx + ix) / 2, (vy + iy) / 2
         e = box["edit"]
@@ -577,10 +498,9 @@ def build_layout(tm, bg_paths):
     # ---------------------------------------------------------------- gauges
     gauges = []
     markers = make_markers()
-    follow = K.MARKERS in ("progress", "brass6")
     for slot, si in enumerate(G.SLOT_SEGMENT):
         seg_ticks = list(G.segment_ticks(segs[si]))
-        if K.CORNER_EXTRA_TICK and si in (0, 2, 3, 5):
+        if si in (0, 2, 3, 5):
             # corner gauges start at their divider: one more tick there
             step = K.TICK_STEP if seg_ticks[1] < seg_ticks[0] else -K.TICK_STEP
             seg_ticks.insert(0, seg_ticks[0] + step)
@@ -602,12 +522,11 @@ def build_layout(tm, bg_paths):
             ticks.append(dict(s=arc[0], e=arc[1], len=L_,
                               r_center=round(K.RING_R - L_ / 2, 1), r_outer=K.RING_R))
         g = dict(ticks=ticks)
-        if follow and mine and marker_at is not None:
+        if mine and marker_at is not None:
             m = mine[0]
-            g["marker"] = dict(k=m["k"], x=m["x"], y=m["y"], after=marker_at,
-                               base="brass" if K.MARKERS == "brass6" else "dim")
+            g["marker"] = dict(k=m["k"], x=m["x"], y=m["y"], after=marker_at, base="brass")
         gauges.append(g)
-    L["markers"] = dict(fixed=[m for m in markers if not follow or not any(
+    L["markers"] = dict(fixed=[m for m in markers if not any(
         g.get("marker", {}).get("k") == m["k"] for g in gauges)])
     L["gauge"] = dict(segments=gauges)
 
@@ -616,99 +535,50 @@ def build_layout(tm, bg_paths):
     vh = digit_h(K.VALUE_PX)
     top_value_cy = K.ELBOW_Y + vh / 2
     top_icon_cy = K.ELBOW_Y - K.ICON_GAP - K.ICON_PX / 2
-    bm_lo = K.BAND_IN[1] + 1
-    bm_hi = K.C + K.RING_R - K.TICK_MAJOR
-    bm_cy = (bm_lo + bm_hi) / 2
-    block = K.ICON_PX + K.ICON_GAP + vh
-    # VALUE_BOX_DESCENDER: a value's box runs from the digits' top to a comma's bottom, so a
-    # value above its icon keeps the full gap even with a thousands separator
-    dsc = F.ink_extent(F.TEXT_FONT, K.VALUE_PX, ",")[3] if K.VALUE_BOX_DESCENDER else 0
-    bm_icon_cy = bm_cy - block / 2 + K.ICON_PX / 2
-    bm_value_cy = bm_cy + block / 2 - vh / 2
+    # a value's box runs from the digits' top to a comma's bottom, so a value above its icon
+    # keeps the full gap even with a thousands separator
+    dsc = F.ink_extent(F.TEXT_FONT, K.VALUE_PX, ",")[3]
     slots = []
     centres = [
         (side_x, top_icon_cy, top_value_cy),                         # TL
         (K.W - side_x, top_icon_cy, top_value_cy),                   # TR
         (side_x, K.W - top_icon_cy + dsc, K.W - top_value_cy),       # BL
-        (K.C, bm_icon_cy, bm_value_cy),                              # BM
+        None,                                                        # BM (below)
         (K.W - side_x, K.W - top_icon_cy + dsc, K.W - top_value_cy), # BR
-        (K.C, K.W - bm_icon_cy + dsc / 2, K.W - bm_value_cy - dsc / 2),  # TM (mirrors BM: icon nearest the band)
+        None,                                                        # TM (below)
     ]
-    sections_rows = None
-    if K.GLANCE_MODE == "sections":
-        # status-icon pairs hug the band in the top- and bottom-middle sections; those
-        # sections' metrics move out so their outer edge is as far from the ticks as the
-        # corner icons are (nearest icon-box corner to the ticks' inner end)
-        tick_in = K.RING_R - K.TICK_MAJOR
-        cx_, icy_ = centres[0][0], centres[0][1]
-        corners_ = [(cx_ + dx, icy_ + dy) for dx in (-K.ICON_PX / 2, K.ICON_PX / 2) for dy in (-K.ICON_PX / 2, K.ICON_PX / 2)]
-        rim_gap = tick_in - max(math.hypot(x - K.C, y - K.C) for x, y in corners_)
-        gs = K.GLANCE_SIZE
-        # the widest value ("99,999") keeps rim_gap from the ticks at its outer corners
-        reach = math.sqrt((tick_in - rim_gap) ** 2 - (w99 / 2) ** 2)
-        # TM: value (box incl. comma depth) on top, icon below it, status pair at the band
-        v_top = K.C - reach
-        tm_v = v_top + vh / 2
-        tm_i = v_top + vh + dsc + K.ICON_GAP + K.ICON_PX / 2
-        centres[5] = (K.C, tm_i, tm_v)
-        # BM: mirror (icon at the top, value below; box bottom incl. comma depth)
-        v_bot = K.C + reach
-        bm_v = v_bot - dsc - vh / 2
-        bm_i = bm_v - vh / 2 - K.ICON_GAP - K.ICON_PX / 2
-        centres[3] = (K.C, bm_i, bm_v)
-        sections_rows = dict(top=K.BAND_IN[0] - K.SECTION_GAP - gs / 2, bottom=K.BAND_IN[1] + K.SECTION_GAP + gs / 2)
-        if K.SECTION_RULES:
-            # a short rule midway between each status pair and its metric's icon box
-            ry_t = ((tm_i + K.ICON_PX / 2) + (sections_rows["top"] - gs / 2)) / 2
-            ry_b = ((bm_i - K.ICON_PX / 2) + (sections_rows["bottom"] + gs / 2)) / 2
-            RULE_PTS.clear()
-            L["rules"] = []
-            for name, y in (("t", ry_t), ("b", ry_b)):
-                pts = rule_points(y, name == "t")
-                RULE_PTS[name] = pts
-                pad = K.LINE_W
-                L["rules"].append(dict(x=math.floor(min(p[0] for p in pts) - pad), y=math.floor(min(p[1] for p in pts) - pad), src=name))
-        L["_notes_rim_gap"] = round(rim_gap, 1)
-    section = None
-    if K.SECTION_LAYOUT:
-        # status-icon row hugging one side of the band; the weather section gets three rows:
-        # icon (nearest the band), temperature, condition text (outermost)
-        gs, sg = K.GLANCE_SIZE, K.SECTION_GAP
-        dh22_ = cap_h(K.DESC_PX)
-        marker_tip = K.C - (K.RING_R - 13)            # top marker tip y; bottom mirrors
-        def three_rows_down(lo, hi):                   # top section: desc, value, icon (towards band)
-            g = (hi - lo - dh22_ - vh - K.ICON_PX) / 4
-            d = lo + g + dh22_ / 2
-            v = lo + 2 * g + dh22_ + vh / 2
-            i = lo + 3 * g + dh22_ + vh + K.ICON_PX / 2
-            return d, v, i
-        if K.SECTION_LAYOUT == "glances_bottom":
-            row_cy = K.BAND_IN[1] + sg + gs / 2
-            lo, hi = row_cy + gs / 2, bm_hi
-            cy = (lo + hi) / 2
-            centres[3] = (K.C, cy - block / 2 + K.ICON_PX / 2, cy + block / 2 - vh / 2)
-            d, v, i = three_rows_down(marker_tip, K.BAND_IN[0])
-            centres[5] = (K.C, i, v)
-            section = dict(row_cy=row_cy, desc_cy=d)
-        elif K.SECTION_LAYOUT == "corners":
-            # top-middle keeps its normal spot; the status icons go in the band's four corners
-            # around the time. Bottom section: weather icon top-aligned with the bottom
-            # corners' value ink, temperature below it, condition text centred between the
-            # temperature and the bottom marker's tip.
-            icon_top = K.W - top_value_cy - vh / 2
-            i = icon_top + K.ICON_PX / 2
-            v = icon_top + K.ICON_PX + K.ICON_GAP + vh / 2
-            d = ((v + vh / 2) + (K.W - marker_tip)) / 2
-            centres[3] = (K.C, i, v)
-            section = dict(row_cy=None, desc_cy=d, corners=True)
-        else:  # glances_top
-            row_cy = K.BAND_IN[0] - sg - gs / 2
-            lo, hi = marker_tip, row_cy - gs / 2
-            cy = (lo + hi) / 2
-            centres[5] = (K.C, cy + block / 2 - K.ICON_PX / 2, cy - block / 2 + vh / 2)
-            d, v, i = three_rows_down(marker_tip, K.BAND_IN[0])
-            centres[3] = (K.C, K.W - i, K.W - v)
-            section = dict(row_cy=row_cy, desc_cy=K.W - d)
+    # status-icon pairs hug the band in the top- and bottom-middle sections; those
+    # sections' metrics move out so their outer edge is as far from the ticks as the
+    # corner icons are (nearest icon-box corner to the ticks' inner end)
+    tick_in = K.RING_R - K.TICK_MAJOR
+    cx_, icy_ = centres[0][0], centres[0][1]
+    corners_ = [(cx_ + dx, icy_ + dy) for dx in (-K.ICON_PX / 2, K.ICON_PX / 2) for dy in (-K.ICON_PX / 2, K.ICON_PX / 2)]
+    rim_gap = tick_in - max(math.hypot(x - K.C, y - K.C) for x, y in corners_)
+    gs = K.GLANCE_SIZE
+    # the widest value ("99,999") keeps rim_gap from the ticks at its outer corners
+    reach = math.sqrt((tick_in - rim_gap) ** 2 - (w99 / 2) ** 2)
+    # TM: value (box incl. comma depth) on top, icon below it, status pair at the band
+    v_top = K.C - reach
+    tm_v = v_top + vh / 2
+    tm_i = v_top + vh + dsc + K.ICON_GAP + K.ICON_PX / 2
+    centres[5] = (K.C, tm_i, tm_v)
+    # BM: mirror (icon at the top, value below; box bottom incl. comma depth)
+    v_bot = K.C + reach
+    bm_v = v_bot - dsc - vh / 2
+    bm_i = bm_v - vh / 2 - K.ICON_GAP - K.ICON_PX / 2
+    centres[3] = (K.C, bm_i, bm_v)
+    sections_rows = dict(top=K.BAND_IN[0] - K.SECTION_GAP - gs / 2, bottom=K.BAND_IN[1] + K.SECTION_GAP + gs / 2)
+    # a rule midway between each status pair and its metric's icon box
+    ry_t = ((tm_i + K.ICON_PX / 2) + (sections_rows["top"] - gs / 2)) / 2
+    ry_b = ((bm_i - K.ICON_PX / 2) + (sections_rows["bottom"] + gs / 2)) / 2
+    RULE_PTS.clear()
+    L["rules"] = []
+    for name, y in (("t", ry_t), ("b", ry_b)):
+        pts = rule_points(y, name == "t")
+        RULE_PTS[name] = pts
+        pad = K.LINE_W
+        L["rules"].append(dict(x=math.floor(min(p[0] for p in pts) - pad), y=math.floor(min(p[1] for p in pts) - pad), src=name))
+    L["_notes_rim_gap"] = round(rim_gap, 1)
     asc, desc = F.vmetrics(str(F.TEXT_FONT))
     for cx, icy, vcy in centres:
         vbox = text_box(K.VALUE_PX, cx, vcy, 132)
@@ -727,13 +597,13 @@ def build_layout(tm, bg_paths):
             unit=dict(y=round(u_y, 1), h=u_h, size=K.UNIT_PX),
             edit=dict(x=round(cx - 58), y=round(top_y), w=116, h=round(bot_y - top_y)),
         ))
-    if K.CORNER_ROTATE:
+    if K.TURN_CORNERS:
         L["_notes_corner_angle"] = round(rotate_corners(centres, slots), 2)
     L["slots"] = slots
     L["char_widths"] = dict(value=char_widths(K.VALUE_PX), unit=char_widths(K.UNIT_PX), unit_gap=3)
 
     # ---------------------------------------------------------------- date stack (left of the time)
-    small = K.DATE_DAY_PX if K.DATE_LARGE else K.DATE_SMALL_PX
+    small = K.DATE_SMALL_PX
     ch21, dh42 = cap_h(small), digit_h(K.DATE_DAY_PX)
     # gaps shrink from the approved 11.1/10.1 (21px lines) to 8/8 (42px lines)
     t_ = (small - 21) / 21
@@ -770,62 +640,24 @@ def build_layout(tm, bg_paths):
     worst_w = total_adv - tm["lsb_min"] - (tm["adv"] - tm["right_max"])
     gh = (K.SEP_X[1] - 1 - (K.SEP_X[0] + 1) - worst_w) / 2
     gs = K.GLANCE_SIZE
-    if section:
-        # the time is alone in the band, centred
-        gv = (K.BAND_IN[1] - K.BAND_IN[0] - th) / 2
-        time_cy = K.MID
-        desc_cy, row_cy = section["desc_cy"], section["row_cy"]
-        if section.get("corners"):
-            # each icon sits in the corner between the band edge and the separator's flared
-            # end, the same distance g from both (measured to a 22px circle around the icon);
-            # g is the largest that keeps CORNER_TIME_CLEAR from the time's ink
-            th_top, th_bot = time_cy - th / 2, time_cy + th / 2
-            (fx1, fy1), (fx2, fy2) = G.separator_points(0)[:2]
-            theta = math.atan2(abs(fx2 - fx1), fy2 - fy1)
-            r = gs / 2
-            def spot(g):
-                cy = K.BAND_IN[0] + r + g
-                xl = fx1 + (fx2 - fx1) * (cy - fy1) / (fy2 - fy1)
-                return xl + (r + g) / math.cos(theta), cy
-            g = max(gg / 4 for gg in range(0, 64) if spot(gg / 4)[1] + r <= th_top - K.CORNER_TIME_CLEAR)
-            cx_l, cy_t = spot(g)
-            cy_b = K.W - cy_t
-            spots = [(cx_l, cy_t), (K.W - cx_l, cy_t), (cx_l, cy_b), (K.W - cx_l, cy_b)]
-            L["_notes_corner_gap"] = round(g, 2)
-            L["glances"] = [dict(name=nm, x=round(x - gs / 2), y=round(y - gs / 2)) for nm, (x, y) in zip(K.GLANCES, spots)]
-    elif K.GLANCE_MODE == "sections":
-        # the band holds the time and the condition text, three equal gaps
-        gv = (K.BAND_IN[1] - K.BAND_IN[0] - th - dh22) / 3
-        time_cy = K.BAND_IN[0] + gv + th / 2
-        desc_cy = K.BAND_IN[0] + 2 * gv + th + dh22 / 2
-        row_cy = None
-        spots = {}
-        for key, pair in (("top", K.GLANCE_SECTIONS[0]), ("bottom", K.GLANCE_SECTIONS[1])):
-            w_ = 2 * gs + K.GLANCE_ROW_GAP
-            for k, nm in enumerate(pair):
-                spots[nm] = (K.C - w_ / 2 + gs / 2 + k * (gs + K.GLANCE_ROW_GAP), sections_rows[key])
-        L["glances"] = [dict(name=nm, x=round(spots[nm][0] - gs / 2), y=round(spots[nm][1] - gs / 2)) for nm in K.GLANCES]
-    elif K.GLANCE_MODE == "row":
-        # status-icon row, time and condition stacked in the band with four equal gaps
-        gv = (K.BAND_IN[1] - K.BAND_IN[0] - gs - th - dh22) / 4
-        row_cy = K.BAND_IN[0] + gv + gs / 2
-        time_cy = K.BAND_IN[0] + 2 * gv + gs + th / 2
-        desc_cy = K.BAND_IN[0] + 3 * gv + gs + th + dh22 / 2
-    else:
-        # split: time and condition with three equal gaps; the icons share the condition's row
-        gv = (K.BAND_IN[1] - K.BAND_IN[0] - th - dh22) / 3
-        time_cy = K.BAND_IN[0] + gv + th / 2
-        desc_cy = K.BAND_IN[0] + 2 * gv + th + dh22 / 2
-        row_cy = desc_cy
-    if not (section and section.get("corners")) and K.GLANCE_MODE != "sections":
-        L["glances"] = [dict(name=nm, x=round(glance_x(nm) - gs / 2), y=round(row_cy - gs / 2)) for nm in K.GLANCES]
+    # the band holds the time and the condition text, with three equal gaps
+    gv = (K.BAND_IN[1] - K.BAND_IN[0] - th - dh22) / 3
+    time_cy = K.BAND_IN[0] + gv + th / 2
+    desc_cy = K.BAND_IN[0] + 2 * gv + th + dh22 / 2
+    # status icons: a pair at the band in the top- and bottom-middle sections
+    spots = {}
+    for key, pair in (("top", K.GLANCE_SECTIONS[0]), ("bottom", K.GLANCE_SECTIONS[1])):
+        w_ = 2 * gs + K.GLANCE_PAIR_GAP
+        for k, nm in enumerate(pair):
+            spots[nm] = (K.C - w_ / 2 + gs / 2 + k * (gs + K.GLANCE_PAIR_GAP), sections_rows[key])
+    L["glances"] = [dict(name=nm, x=round(spots[nm][0] - gs / 2), y=round(spots[nm][1] - gs / 2)) for nm in K.GLANCES]
     x0 = K.C - (4 * tm["cell_w"] + tm["colon_w"]) / 2
     img_y = time_cy - tm["ink_mid"]
     L["time"] = dict(
         hour_x=round(x0), minute_x=round(x0 + 2 * tm["cell_w"] + tm["colon_w"]),
         colon_x=round(x0 + 2 * tm["cell_w"]), y=round(img_y),
         # no condition text (no weather slot): centred in what the band has left
-        y_alone=round((((row_cy + gs / 2) + K.BAND_IN[1]) / 2 if K.GLANCE_MODE == "row" else K.MID) - tm["ink_mid"]),
+        y_alone=round(K.MID - tm["ink_mid"]),
         y_aod=round(K.MID - tm["ink_mid"]),       # always-on: the time is alone in the band
         cell_w=tm["cell_w"], cell_h=tm["cell_h"], gap_side=round(gh, 1), gap_vertical=round(gv, 1),
     )
@@ -857,7 +689,7 @@ def build_layout(tm, bg_paths):
     L["fixed_slots"] = {str(k): v for k, v in K.FIXED_SLOTS.items()}
     L["weather_desc"] = [d for _, d in K.WEATHER]
     L["font"] = "fonts/" + F.TEXT_FONT_SUBSET_NAME
-    L["_notes"] = dict(glance_mode=K.GLANCE_MODE, side_value_x=side_x, width_99999=w99, gap_99999_to_divider=side_gap,
+    L["_notes"] = dict(side_value_x=side_x, width_99999=w99, gap_99999_to_divider=side_gap,
                        time_px=K.TIME_PX, time_gap_side=round(gh, 1), time_gap_vertical=round(gv, 1))
     return L
 

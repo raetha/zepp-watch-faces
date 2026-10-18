@@ -1797,7 +1797,6 @@ export const LAYOUT = {
   ],
   "font": "fonts/RobotoCondensed-Regular.ttf",
   "_notes": {
-    "glance_mode": "sections",
     "side_value_x": 123.2,
     "width_99999": 102.0,
     "gap_99999_to_divider": 10.8,

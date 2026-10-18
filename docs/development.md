@@ -175,15 +175,9 @@ A watch face can't receive anything from the phone. The Zepp app's Settings App 
 - **The face:** reads that file with `hmFS.open(name, hmFS.O_RDONLY, { appid: <companion appId> })`. Example: [zeppos-autogui wf-app-comms](https://github.com/silver-zepp/zeppos-autogui/tree/master/other-autogui-examples/zeppos-3.0-wf-app-comms).
 - **Drawbacks:** it's two installs, and the face can't update its own editor's selections, so the two would need a rule like "the most recent change wins".
 
-## Sextant switches kept for later
+## Sextant's design is locked
 
-- **White time:** `COLOR_TIME_STYLE = 'color_white'` in `faces/sextant/watchface/index.js`. The digits are already generated.
-- **Barlow Condensed font** (previous font, fully aligned at time 111px, corner x 121.7):
-  - Add the OFL Barlow Condensed files to `fonts/`.
-  - Point `build_fonts()` at them.
-  - Set `TIME_PX` to about 111 in `faces/sextant/design/config.py`.
-  - Regenerate.
-- **Faster-fade section tint** instead of black: colour near the rim, fading to black by about r=130 with a t^2.6 falloff. It needs per-metric tint images per section. This was prototyped in design renders but not built.
+Sextant and Twisted Sextant were locked on 2026-10-18: the generator has no switches for alternative designs any more. `faces/sextant/docs/design.md` → "Tried and dropped" lists what was tried; the code for those is in the git history before that date. `SEXTANT_OVERRIDES` still layers config overrides for mock-ups (and is how Twisted Sextant is built), and `DEMO_VALUES` fakes sensor readings for emulator renders.
 
 ## Releasing
 

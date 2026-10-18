@@ -1,6 +1,7 @@
 {
   "_doc": "Twisted Sextant is Sextant with these overrides of faces/sextant/design/config.py (built by design/generate.py).",
-  "CORNER_ROTATE": "text_icon",
+  "TURN_CORNERS": true,
+  "DIAG_AT_GAUGE_MID": true,
   "DEFAULT_SLOTS": [
     "calories",
     "heart",
@@ -35,6 +36,5 @@
   ],
   "FIXED_SLOTS": {
     "5": "weather"
-  },
-  "DIAG_AT_GAUGE_MID": true
+  }
 }
