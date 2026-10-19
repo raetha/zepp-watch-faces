@@ -5,7 +5,7 @@ What's already in place, what's left, and the store-facing text for each face. T
 ## Already in place
 
 - **Package:** CI attaches a `.zab` to every release (`faces/<face>/dist/*.zab` locally). That's the file the store takes.
-- **Previews:** `faces/<face>/docs/store/preview_en.png`, `preview_sc.png` and `preview_tc.png`, 324×324 (the size for 480×480 watches), showing 10:09 as Zepp requires. They're rewritten with the screenshots (`npm run screenshots -- <face>`). The face's own text is English in every language, so the three are the same picture.
+- **Previews:** `faces/<face>/docs/store/preview_en.png`, `preview_sc.png` and `preview_tc.png`, 360×360 and under 1 MB (what the Zepp Console accepts), showing 10:09 as Zepp requires. They're rewritten with the screenshots (`npm run screenshots -- <face>`). The face's own text is English in every language, so the three are the same picture.
 - **Languages:** the app name and every editor title are in English, Simplified and Traditional Chinese. On the watch, other languages fall back to English.
 - **Design rules** ([watch face specification](https://docs.zepp.com/docs/watchface/specification/), [watch face design](https://docs.zepp.com/docs/designs/customization/watchface/)):
   - Text is at least 22px and lines at least 1px. Text, icons and ticks stay well inside the 2px edge margin; only the band and divider lines run to the rim, by design.
