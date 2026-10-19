@@ -7,6 +7,8 @@ All notable changes to the Sextant watch face. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-19
+
 ### Changed
 - The battery icon fills with the charge and empties a pixel at a time (about every 5%), on the always-on screen too. At 0% only the outline is left.
 

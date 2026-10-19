@@ -218,7 +218,7 @@ Releasing (only when the owner asks):
 1. On `dev`, for each face being released: rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` (with a fresh empty `## [Unreleased]` above it), set `version.name` in `app.json` to `X.Y.Z` and increase `version.code` by one. Faces without changes keep their version and aren't released.
 2. Open a pull request from `dev` into `main`, titled with what it releases ("Sextant 1.1.0, Twisted Sextant 1.0.1"). The description is the new changelog sections. CI runs on it.
 3. The owner squash-merges it, keeping the title as the commit message and the changelog sections as its body.
-4. CI on `main` creates each release. Then reset `dev` to `main` (`git checkout dev && git reset --hard origin/main && git push --force-with-lease`). A squash merge doesn't carry `dev`'s commits over, so this keeps `dev` from showing them as unmerged.
+4. CI on `main` creates each release, then resets `dev` to `main` (the `sync-dev` job). A squash merge doesn't carry `dev`'s commits over, so this keeps `dev` from showing them as unmerged. It only does this when `dev` has the same files as `main`; if work landed on `dev` after the pull request was opened, reset it by hand once that work is in a release (`git checkout dev && git reset --hard origin/main && git push --force-with-lease`).
 
 Versions follow [Semantic Versioning](https://semver.org/): a new complication, option or look is a minor version (1.1.0), a fix with nothing new is a patch (1.0.1), and a change that drops or renames something people have set up (a removed complication, a slot that moves) is a major version (2.0.0).
 

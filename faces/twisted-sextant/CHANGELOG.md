@@ -5,6 +5,8 @@ The version here must match `version.name` in `app.json`; bumping it publishes a
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-19
+
 ### Changed
 - The battery icon fills with the charge and empties a pixel at a time (about every 5%), on the always-on screen too. At 0% only the outline is left.
 
