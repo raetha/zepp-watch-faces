@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw
 from . import config as K
 from . import geometry as G
 from zfkit import fonts as F
-from zfkit.icons import (METRIC_SVG, BATTERY_SVG, GLANCE_SVG, GLANCE_OFF_SVG, weather_svg, svg_to_image, retint)
+from zfkit.icons import (METRIC_SVG, BATTERY_SVG, BATTERY_FILL_VB, GLANCE_SVG, GLANCE_OFF_SVG, weather_svg, svg_to_image, retint)
 
 S = 3                      # supersampling for vector drawing
 OUT = K.ASSET_DIR
@@ -302,6 +302,21 @@ def battery_ink_h():
     img = centred(svg_to_image(BATTERY_SVG("#ffffff"), K.BATTERY_ICON_PX), K.BATTERY_ICON_PX)
     bb = img.getchannel("A").getbbox()
     return bb[3] - bb[1]
+
+
+def battery_fill_box():
+    """Where the full charge sits inside the battery icon's box, in whole pixels: the same
+    shift as centred() applies to the outline, so the fill lands exactly inside it."""
+    px = K.BATTERY_ICON_PX
+    raw = svg_to_image(BATTERY_SVG("#ffffff"), px)
+    bb = raw.getchannel("A").getbbox()
+    dx = (px - (bb[2] - bb[0])) // 2 - bb[0]
+    dy = (px - (bb[3] - bb[1])) // 2 - bb[1]
+    s = px / 24
+    x, y, w, h = BATTERY_FILL_VB
+    x0, y0 = round(x * s + dx), round(y * s + dy)
+    x1, y1 = round((x + w) * s + dx), round((y + h) * s + dy)
+    return dict(dx=x0, dy=y0, w=x1 - x0, h=y1 - y0, radius=1)
 
 
 def metric_rgb(theme, metric):
@@ -663,6 +678,9 @@ def build_layout(tm, bg_paths):
     L["night_edit"] = dict(x=round(K.C - 115), y=round(time_cy - 52), w=230, h=104)
 
     # ---------------------------------------------------------------- always-on
+    fill = battery_fill_box()
+    for b in (L["battery"],):
+        b["fill"] = dict(x=b["icon"]["x"] + fill["dx"], y=b["icon"]["y"] + fill["dy"], w=fill["w"], h=fill["h"], radius=fill["radius"])
     L["aod"] = dict(date=date_lines(side_l, K.MID - stack_h / 2),
                     battery=L["battery"])
 
@@ -676,6 +694,7 @@ def build_layout(tm, bg_paths):
             m[metric] = dict(on=hexint(rgb), dim=hexint(lerp((0, 0, 0), rgb, t["dim_factor"])))
         colours[theme] = dict(text=hexint(t["text"]), muted=hexint(t["muted"]), accent=hexint(t["accent"]),
                               desc=hexint(t["desc"]), aod_text=hexint(t["aod_text"]),
+                              battery={k: hexint(K.hexrgb(hx) if theme == "color" else t["metric"]) for k, hx in K.BATTERY_COLORS.items()},
                               unit=m, bg=bg_paths[theme], aod_bg=bg_paths[f"aod_{theme}"])
     L["colors"] = colours
     L["metrics"] = {k: dict(title=v[0], title_sc=K.TITLES_ZH[k][0], title_tc=K.TITLES_ZH[k][1], progress=v[2])

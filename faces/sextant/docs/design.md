@@ -15,7 +15,7 @@ The decisions behind the layout, so future changes keep the same logic. All numb
 - **Band contents:**
   - The date stack is centred at x 50, and the battery icon and percentage at x 430, each midway between a separator and the screen edge.
     - Date: weekday and month at 32px and the day at 42px, with 10px between lines.
-    - Battery: its drawing is short and wide, so it's spaced on the drawing itself, with the same visible gap as the complications (`VISIBLE_ICON_GAP`, 13.5px).
+    - Battery: its drawing is short and wide, so it's spaced on the drawing itself, with the same visible gap as the complications (`VISIBLE_ICON_GAP`, 13.5px). The icon is only the outline and cap; the charge is a `FILL_RECT` inside it, 19×8px with 1.5 units (2px) of space to the stroke all round. Its width is the level in whole pixels (rounded, at least 1px above 0%), so it loses a pixel about every 5%. The always-on screen draws the same fill in its dim colour.
   - The time (Roboto Condensed, fixed-width digits, sized so it sits 12px from each separator: 121px) is centred between the separators at x 100 and 380.
   - The weather condition (22px caps) sits beneath the time. It only shows when some slot shows weather: without the temperature it's out of context. The time is always centred in the band (on the always-on screen too, so it never moves), and the condition is centred in the space below the digits: 9.2px above and below it. Until 2026-10-18 the time and condition were spread with three equal gaps, and the time moved to the centre when no slot showed weather.
   - The band separators share the band edges' brass gradient. Both keep 18% brass at their ends (`BRASS_FLOOR`) instead of fading to the dim edge colour.

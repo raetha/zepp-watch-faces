@@ -286,10 +286,31 @@ export function sextantFace(L) {
       this.w(hmUI.widget.IMG, {
         x: px_(L.aod.battery.icon.x), y: px_(L.aod.battery.icon.y), src: `aod/battery_${theme}.png`, show_level: AOD,
       });
+      dyn.aodBatteryFill = this.batteryFill(L.aod.battery.fill, C.aod_text, AOD);
       dyn.aodBattery = aodText(L.aod.battery.text, C.aod_text);
 
       // created last: a widget created later (even an always-on one) would take the taps
       if (!aodCopy) this.renderTaps();
+    },
+
+    /** The battery's charge: a rounded bar inside the outline icon, as wide as the level. */
+    batteryFill(box, color, showLevel) {
+      return this.w(hmUI.widget.FILL_RECT, {
+        x: px_(box.x), y: px_(box.y), w: px_(box.w), h: px_(box.h), radius: px_(box.radius), color, show_level: showLevel,
+      });
+    },
+
+    setBatteryFill(widget, box, level, color) {
+      if (!widget) return;
+      // whole pixels, rounded, so 100% is the full bar and anything above 0% shows at least 1px
+      const w = level <= 0 ? 0 : Math.max(1, Math.round((box.w * Math.min(level, 100)) / 100));
+      const key = `${w}/${color}`;
+      if (widget.shown === key) return;
+      widget.shown = key;
+      widget.setProperty(hmUI.prop.VISIBLE, w > 0);
+      if (w > 0) widget.setProperty(hmUI.prop.MORE, {
+        x: px_(box.x), y: px_(box.y), w: px_(w), h: px_(box.h), radius: px_(w > 2 * box.radius ? box.radius : 0), color,
+      });
     },
 
     /** Everything on the normal (not always-on) screen. */
@@ -411,6 +432,7 @@ export function sextantFace(L) {
       dyn.batteryIcon = this.w(hmUI.widget.IMG, {
         x: px_(L.battery.icon.x), y: px_(L.battery.icon.y), src: `battery/${theme}/high.png`, show_level: NORMAL,
       });
+      dyn.batteryFill = this.batteryFill(L.battery.fill, C.battery.high, NORMAL);
       dyn.battery = this.text(L.battery.text, { color: C.text });
 
       // time
@@ -501,8 +523,10 @@ export function sextantFace(L) {
       if (dyn.batteryIcon) {
         dyn.batteryIcon.setProperty(hmUI.prop.SRC, `battery/${theme}/${band}.png`);
         dyn.battery.setProperty(hmUI.prop.TEXT, `${level}%`);
+        this.setBatteryFill(dyn.batteryFill, L.battery.fill, level, L.colors[theme].battery[band]);
       }
       dyn.aodBattery.setProperty(hmUI.prop.TEXT, `${level}%`);
+      this.setBatteryFill(dyn.aodBatteryFill, L.aod.battery.fill, level, L.colors[theme].aod_text);
 
       // complications (the always-on screen shows none)
       if (this.isAod()) return;

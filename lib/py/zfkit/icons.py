@@ -73,7 +73,9 @@ for _k in range(8):
     METRIC_SVG[f"moon_{_k}"] = (lambda k: lambda c: moon_svg(k, c))(_k)
 METRIC_SVG["moon"] = METRIC_SVG["moon_4"]
 
-BATTERY_SVG = lambda c: f'<rect x="2" y="7" width="18" height="10" rx="2.5" fill="none" stroke="{c}" stroke-width="1.8"/><rect x="20.6" y="10" width="2" height="4" rx="1" fill="{c}"/><rect x="4.4" y="9.4" width="11" height="5.2" rx="1.2" fill="{c}"/>'
+# battery: the outline and cap; the face draws the charge inside it as a FILL_RECT
+BATTERY_SVG = lambda c: f'<rect x="2" y="7" width="18" height="10" rx="2.5" fill="none" stroke="{c}" stroke-width="1.8"/><rect x="20.6" y="10" width="2" height="4" rx="1" fill="{c}"/>'
+BATTERY_FILL_VB = (4.4, 9.4, 13.2, 5.2)      # the full charge in viewBox units (x, y, w, h): 1.5 inside the stroke
 
 GLANCE_SVG = {
     "disconnect": '<g fill="none" stroke="#5AA9FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10-5 4V3l5 4-10 10"/></g><path d="M3 3l18 18" stroke="#FF5A6A" stroke-width="2.4" stroke-linecap="round"/>',

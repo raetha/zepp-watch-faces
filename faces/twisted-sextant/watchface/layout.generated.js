@@ -1166,6 +1166,13 @@ export const LAYOUT = {
       "w": 100,
       "h": 55,
       "size": 40
+    },
+    "fill": {
+      "x": 419,
+      "y": 215,
+      "w": 19,
+      "h": 8,
+      "radius": 1
     }
   },
   "glances": [
@@ -1255,6 +1262,13 @@ export const LAYOUT = {
         "w": 100,
         "h": 55,
         "size": 40
+      },
+      "fill": {
+        "x": 419,
+        "y": 215,
+        "w": 19,
+        "h": 8,
+        "radius": 1
       }
     }
   },
@@ -1265,6 +1279,11 @@ export const LAYOUT = {
       "accent": 14068832,
       "desc": 16766584,
       "aod_text": 11844290,
+      "battery": {
+        "high": 4054148,
+        "mid": 16756797,
+        "low": 16731486
+      },
       "unit": {
         "steps": {
           "on": 4054148,
@@ -1384,6 +1403,11 @@ export const LAYOUT = {
       "accent": 13554392,
       "desc": 14475494,
       "aod_text": 11185844,
+      "battery": {
+        "high": 15527664,
+        "mid": 15527664,
+        "low": 15527664
+      },
       "unit": {
         "steps": {
           "on": 15527664,
@@ -1503,6 +1527,11 @@ export const LAYOUT = {
       "accent": 13444630,
       "desc": 14690841,
       "aod_text": 11476499,
+      "battery": {
+        "high": 14756120,
+        "mid": 14756120,
+        "low": 14756120
+      },
       "unit": {
         "steps": {
           "on": 14756120,

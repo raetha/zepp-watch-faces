@@ -21,7 +21,7 @@ const ASSETS = path.join(FACE, 'assets/common.r');
 const scenario = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
 
 const enumOf = (names) => Object.fromEntries(names.map((n, i) => [n, i + 1]));
-const WIDGET = enumOf(['IMG', 'TEXT', 'TEXT_FONT', 'ARC_PROGRESS', 'IMG_TIME', 'IMG_STATUS', 'IMG_LEVEL', 'WATCHFACE_EDIT_GROUP', 'WIDGET_DELEGATE', 'GROUP']);
+const WIDGET = enumOf(['IMG', 'TEXT', 'TEXT_FONT', 'FILL_RECT', 'ARC_PROGRESS', 'IMG_TIME', 'IMG_STATUS', 'IMG_LEVEL', 'WATCHFACE_EDIT_GROUP', 'WIDGET_DELEGATE', 'GROUP']);
 const WIDGET_NAME = Object.fromEntries(Object.entries(WIDGET).map(([k, v]) => [v, k]));
 const PROP = enumOf(['TEXT', 'SRC', 'VISIBLE', 'MORE', 'CURRENT_TYPE', 'COLOR', 'ANGLE']);
 const DATA_TYPES = ['STEP', 'CAL', 'HEART', 'DISTANCE', 'FLOOR', 'STAND', 'FAT_BURNING', 'SPO2', 'STRESS', 'UVI',
