@@ -203,3 +203,31 @@ jobs:
 
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  # After a release pull request is merged, dev holds the same files as main but different
+  # commits; reset it to main so the next cycle starts clean. Skipped if dev has new work.
+  sync-dev:
+    needs: [build, release]
+    if: >-
+      always() && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      needs.build.result == 'success' &&
+      (needs.release.result == 'success' || needs.release.result == 'skipped')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Reset dev to main if they match
+        run: |
+          set -e
+          git rev-parse -q --verify origin/dev >/dev/null || { echo "no dev branch"; exit 0; }
+          if git diff --quiet origin/main origin/dev; then
+            git push --force origin origin/main:refs/heads/dev
+            echo "dev reset to main"
+          else
+            echo "dev has changes that aren't on main: left as it is"
+          fi
+

@@ -143,6 +143,12 @@ def render(dump, scenario, aod=False, edit=False):
                 i = bound.get(p.get("type"), {}).get("level", 0)
             arr = p["image_array"]
             paste(canvas, arr[max(0, min(len(arr) - 1, int(i)))], p.get("x", 0), p.get("y", 0))
+        elif t == "FILL_RECT":
+            c = p.get("color", 0)
+            rgb = ((c >> 16) & 255, (c >> 8) & 255, c & 255, 255)
+            x, y, w_, h = (p.get(k, 0) * S for k in ("x", "y", "w", "h"))
+            if w_ > 0 and h > 0:
+                ImageDraw.Draw(canvas).rounded_rectangle([x, y, x + w_ - 1, y + h - 1], radius=p.get("radius", 0) * S, fill=rgb)
         elif t == "ARC_PROGRESS":
             lvl = bound.get(p["type"], {}).get("level", 0) if p.get("type") else p.get("level", 0)
             draw_arc(canvas, p, lvl)
