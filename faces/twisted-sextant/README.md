@@ -6,7 +6,15 @@
 
 ## Install
 
-<img src="docs/install-qr.png" width="200" align="right" alt="Install QR code">
+- **Zepp store:** in the Zepp app, open your watch's watch face store and search for "Twisted Sextant".
+- **amazfitwatchfaces.com:** [Twisted Sextant](https://amazfitwatchfaces.com/balance/view/9037)
+
+<details>
+<summary>Sideload instead (Developer Mode)</summary>
+
+<img src="docs/install-qr.png" width="160" align="right" alt="Install QR code">
+
+For testing, or a watch the stores don't offer. A sideloaded face doesn't get store updates.
 
 1. In the **Zepp app**, turn on Developer Mode: **Profile → Settings → About**, then tap the Zepp logo 7 times.
 2. Go to **Profile → your watch → Developer Mode** and tap the **scan** icon (top right).
@@ -15,6 +23,7 @@
 The QR code always installs the latest release (see the [changelog](CHANGELOG.md)). You can also download `twisted-sextant.zpk` from the [install page](https://raetha.github.io/zepp-watch-faces/) or from the [releases](https://github.com/raetha/zepp-watch-faces/releases).
 
 <br clear="right">
+</details>
 
 ## How it differs from Sextant
 

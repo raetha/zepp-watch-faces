@@ -19,7 +19,7 @@ This is the canonical guide for the repository. Read it before changing anything
 | `lib/js/` | Shared runtime helpers: `format.js`, `sun.js` (sunrise, sunset, night detection), `metrics.js` (complication definitions). |
 | `lib/py/zfkit/` | Shared generator helpers: `fonts.py` (instancing, subsetting, text-box maths), `icons.py` (original icon artwork). |
 | `tools/emu/` | Runs faces on the real Zepp OS firmware in QEMU (see "Testing on the emulator"). |
-| `tools/` | `generate.py` (all faces), `harness/` (offline runner), `preview.py`, `make_covers.py`, `make_qr.py`, `extract_zpk.py`, `build_site.py`, `new_face.py`, the release helpers `release_plan.py`, `changelog.py`, `release_notes.py`, and the test-build helpers `make_dev_variant.py`, `dev_site.py`, `zeus_preview.sh`, `zeus_login.sh`, `zeus_preview_hook.cjs` (see "Test builds"). |
+| `tools/` | `generate.py` (all faces), `harness/` (offline runner), `preview.py`, `make_covers.py`, `make_qr.py`, `extract_zpk.py`, `build_site.py`, `stores.py` (each face's store links, used by the install page and release notes), `new_face.py`, the release helpers `release_plan.py`, `changelog.py`, `release_notes.py`, and the test-build helpers `make_dev_variant.py`, `dev_site.py`, `zeus_preview.sh`, `zeus_login.sh`, `zeus_preview_hook.cjs` (see "Test builds"). |
 | `fonts/` | The OFL variable font Roboto Condensed and its licence. |
 
 Faces import shared JS with relative paths, for example `import { isNight } from '../../../lib/js/sun';`. Zeus bundles these when building the face.
