@@ -2,7 +2,7 @@
 """Add the unlisted test-build page to the Pages site.
 
 Expects site/dev/<face>/<face>.zpk (fresh test builds). For a face with a Zepp preview
-upload (tools/zeus_preview.sh: preview-qr.png and preview-expires.txt), the page shows that
+upload (zepp-devkit preview: preview-qr.png and preview-expires.txt), the page shows that
 QR code only: it's the only install the Zepp app lists under Developer Mode. Previews
 expire after 7 days and each push makes a new one. Without one (no ZEPP_* secrets, or a
 failed upload), it falls back to a QR code for our own .zpk. Writes site/dev/index.html,
