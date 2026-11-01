@@ -5,5 +5,5 @@ fonttools==4.65.0
 numpy==2.5.3
 qrcode==8.2
 # Shared Zepp tooling (DEV variants, previews, releases, packages, QR codes, the emulator): one
-# pin, used by CI and sessions alike (docs/development.md -> "Shared tooling: zepp-devkit").
+# pin, used by CI and sessions alike (docs/development.md -> "Layout").
 zepp-devkit @ git+https://github.com/raetha/zepp-devkit@v0.1.0
