@@ -18,9 +18,12 @@ This is the canonical guide for the repository. Read it before changing anything
 | `faces/<face>/docs/` | The install QR code and design notes. |
 | `lib/js/` | Shared runtime helpers: `format.js`, `sun.js` (sunrise, sunset, night detection), `metrics.js` (complication definitions). |
 | `lib/py/zfkit/` | Shared generator helpers: `fonts.py` (instancing, subsetting, text-box maths), `icons.py` (original icon artwork). |
-| `tools/emu/` | Runs faces on the real Zepp OS firmware in QEMU (see "Testing on the emulator"). |
-| `tools/` | `generate.py` (all faces), `harness/` (offline runner), `preview.py`, `make_covers.py`, `make_qr.py`, `extract_zpk.py`, `build_site.py`, `stores.py` (each face's store links, used by the install page and release notes), `new_face.py`, the release helpers `release_plan.py`, `changelog.py`, `release_notes.py`, and the test-build helpers `make_dev_variant.py`, `dev_site.py`, `zeus_preview.sh`, `zeus_login.sh`, `zeus_preview_hook.cjs` (see "Test builds"). |
+| `tools/emu/` | Face-specific emulator scripts: README screenshots (`screenshots.mjs`) and `audit.py`; the emulator itself is `zepp-devkit emu` (see "Testing on the emulator"). |
+| `zepp-devkit.json` | The releasable faces, for `zepp-devkit release-plan`. |
+| `tools/` | `generate.py` (all faces), `harness/` (offline runner), `preview.py`, `make_covers.py`, `make_qr.py`, `build_site.py`, `stores.py` (each face's store links, used by the install page and release notes), `new_face.py`, `release_notes.py`, and the test-build helpers `make_dev_variant.py` (the DEV app IDs) and `dev_site.py`. The shared parts (DEV variants, previews, release plans, packages, QR codes, the emulator) come from zepp-devkit (below). |
 | `fonts/` | The OFL variable font Roboto Condensed and its licence. |
+
+**Shared Zepp tooling** (DEV variants, Zepp previews, releases from changelogs, packages, QR codes, the emulator) comes from [raetha/zepp-devkit](https://github.com/raetha/zepp-devkit), shared with Kestrel and pinned once, in `tools/requirements.txt`, so CI and sessions run the same commit (`pip install -r tools/requirements.txt` gives the `zepp-devkit` command). Change shared behaviour there, not here; to try a devkit change, point the pin at its `dev` commit on a branch here, and once a devkit release is tagged, pin the tag. This repo keeps its own settings and texts: `zepp-devkit.json`, `tools/make_dev_variant.py` (the DEV app IDs), `tools/release_notes.py` and `tools/stores.py`, the pages.
 
 Faces import shared JS with relative paths, for example `import { isNight } from '../../../lib/js/sun';`. Zeus bundles these when building the face.
 
@@ -85,7 +88,7 @@ If more than one face needs a piece of code, move it to `lib/js/` or `lib/py/zfk
 
 ## Testing on the emulator
 
-`tools/emu/emu.mjs` runs a face on the real Zepp OS firmware, headless, using the QEMU emulator that ships with Zepp's simulator. The image is the Amazfit Balance 2 (480×480 round, Zepp OS 5), the closest one Zepp publishes to the Balance 3. It's the same firmware a watch runs, so it shows what the offline harness can only approximate:
+`zepp-devkit emu` (from [zepp-devkit](https://github.com/raetha/zepp-devkit), shared with Kestrel) runs a face on the real Zepp OS firmware, headless, using the QEMU emulator that ships with Zepp's simulator. The image is the Amazfit Balance 2 (480×480 round, Zepp OS 5), the closest one Zepp publishes to the Balance 3. It's the same firmware a watch runs, so it shows what the offline harness can only approximate:
 - real text placement and arc drawing,
 - edit mode,
 - data binding (weather, floors and so on),
@@ -97,10 +100,10 @@ One-time setup (Linux x86_64, about 5 minutes). It downloads about 240 MB from Z
 sudo apt-get install -y libvte-2.91-0 libaio1t64 xvfb xdotool   # QEMU's libraries, virtual display, touch input
 npm install                                                     # ws (talks to the emulated watch)
 npm install -g @zeppos/zeus-cli                                  # builds the face
-node tools/emu/emu.mjs setup                                     # emulator + Balance 2 firmware
-node tools/emu/emu.mjs start                                     # boot a factory-fresh watch (about 40 s)
-node tools/emu/emu.mjs enable-aod                                # turn the always-on screen on (scheduled 08:00-22:00)
-node tools/emu/emu.mjs save-base                                 # keep this watch state as tools/.emu/base-flash.bin
+zepp-devkit emu setup                                     # emulator + Balance 2 firmware
+zepp-devkit emu start                                     # boot a factory-fresh watch (about 40 s)
+zepp-devkit emu enable-aod                                # turn the always-on screen on (scheduled 08:00-22:00)
+zepp-devkit emu save-base                                 # keep this watch state as tools/.emu/base-flash.bin
 ```
 
 Network access needed: `upload-cdn.zepp.com` and `upload-cdn.huami.com` (emulator, firmware, device list), plus whatever Zeus uses on `*.zepp.com` / `*.huami.com` while building. In a Claude session these must be allowed in the session's network settings.
@@ -108,17 +111,17 @@ Network access needed: `upload-cdn.zepp.com` and `upload-cdn.huami.com` (emulato
 Everyday commands (`npm run emu -- <command>` works too):
 
 ```bash
-node tools/emu/emu.mjs reset                          # restore base-flash.bin (do this for a known state)
-node tools/emu/emu.mjs start --time 2026-10-15T10:08:00   # boot with the clock at this time (UTC); 21:14 for night mode
-node tools/emu/emu.mjs install sextant                # zeus build + install + make it the active face
-node tools/emu/emu.mjs set walkstep=12486 goal_walkstep=15000 btcon=false weather=3 temp=18
-node tools/emu/emu.mjs shot out.png                   # 480x480 screenshot
-node tools/emu/emu.mjs tap 240 240 2.5                # long-press: face picker; then tap 240 438 for Edit
-node tools/emu/emu.mjs tap 240 105                    # in Edit: tap a box to select it, tap again to cycle options
-node tools/emu/emu.mjs key ret                        # leave Edit
-node tools/emu/emu.mjs rest                           # screen off: the always-on view
-node tools/emu/emu.mjs face                           # back to the watch face
-node tools/emu/emu.mjs stop
+zepp-devkit emu reset                          # restore base-flash.bin (do this for a known state)
+zepp-devkit emu start --time 2026-10-15T10:08:00   # boot with the clock at this time (UTC); 21:14 for night mode
+zepp-devkit emu install sextant                # zeus build + install + make it the active face
+zepp-devkit emu set walkstep=12486 goal_walkstep=15000 btcon=false weather=3 temp=18
+zepp-devkit emu shot out.png                   # 480x480 screenshot
+zepp-devkit emu tap 240 240 2.5                # long-press: face picker; then tap 240 438 for Edit
+zepp-devkit emu tap 240 105                    # in Edit: tap a box to select it, tap again to cycle options
+zepp-devkit emu key ret                        # leave Edit
+zepp-devkit emu rest                           # screen off: the always-on view
+zepp-devkit emu face                           # back to the watch face
+zepp-devkit emu stop
 ```
 
 **Spacing check:** `python3 tools/emu/audit.py faces/sextant shot.png` measures each complication's icon and value centring and gaps, plus the battery, the date, the status-icon row and the condition text, on an emulator screenshot.
@@ -142,13 +145,13 @@ Only shots the READMEs or the install site use are kept. A full Sextant set take
 - **Scrolling:** a fast swipe flings a list. `swipe x1 y1 x2 y2 1200` drags slowly and scrolls exactly the distance moved.
 - **Arcs are whole degrees.** Angles are truncated, and arcs under 1° don't draw. Measure positions around the true screen centre (pixel 239.5) when checking symmetry.
 - **Unchanged values:** `set` with the same weather values as before doesn't refresh the weather, and the DND state can stick. Change a value to force an update.
-- **Screen timeout:** after an always-on shot, a tap wakes the screen only briefly, so always-on shots go last in a run. `emu.mjs key ret` (the button) wakes it reliably.
+- **Screen timeout:** after an always-on shot, a tap wakes the screen only briefly, so always-on shots go last in a run. `zepp-devkit emu key ret` (the button) wakes it reliably.
 - **Editor:** tapping a box selects it, and tapping the selected box again moves to its next option. The first box is selected when the editor opens.
 - **Settings take effect at the next minute tick.** The 12/24-hour switch is one, so wait about 62 s before shooting.
 - **The clock** starts at `--time` (UTC) and keeps running.
 
 **Emulator limits:**
-- `zeus build` converts images to the watch's own compressed format, which the emulator can't decode. `tools/emu/prepare.py` swaps the original PNGs back in, for the emulator only.
+- `zeus build` converts images to the watch's own compressed format, which the emulator can't decode. `zepp-devkit emu install` swaps the original PNGs back in, for the emulator only.
 - Test values (`set`) reach steps, calories, heart rate and battery through `@zos/sensor`, and every bound widget. Distance, PAI, stand, fat burning, blood oxygen and stress read 0 through `@zos/sensor` even when set (their bound widgets do show the values), and so do training, barometer, body temperature and compass (sleep does read the emulator's own sleep data), so check those on a real watch. For mock-ups, `DEMO_VALUES` in `design/config.py` (an override) shows given values instead of readings.
 - The weather location is fixed (Beijing data: sunset 17:55). Weather values only update when they change.
 - The always-on screen gets no weather data: bound weather widgets there show nothing (or "--"), even while the normal screen shows the weather. Other bindings (battery) and `IMG_LEVEL` work there.
@@ -159,15 +162,15 @@ The firmware log, including the face's `console.log` output, is in `tools/.emu/s
 
 ```bash
 export ZEPP_EMU_DIR=tools/.emu-active2 ZEPP_EMU_MODEL='Active 2' ZEPP_DEVICE_SOURCE=10092800
-node tools/emu/emu.mjs setup && node tools/emu/emu.mjs start --time 2026-10-18T10:09:00
-node tools/emu/emu.mjs install sextant && node tools/emu/emu.mjs shot a2.png
+zepp-devkit emu setup && zepp-devkit emu start --time 2026-10-18T10:09:00
+zepp-devkit emu install sextant && zepp-devkit emu shot a2.png
 ```
 
 `ZEPP_DEVICE_SOURCE` picks the `.zab`'s package for that model (any device ID in its group works). On a fresh Active 2 watch the face shows straight after `install` with a `key backspace` or two, but `enable-aod`'s taps are laid out for the Balance 2, so the always-on screen there needs setting by hand. 466-wide screens pad each framebuffer row to 1400 bytes; `shot` corrects for that.
 
 ### What the emulator confirmed (October 2026)
 
-- **Packages:** a `.zab` holds one `.zpk` per screen and chip. Sextant's first test builds installed the 454×454 build, because `extract_zpk.py` took the first one. That made the face about 5% small and anchored top-left, which is why the time looked too small and the right-hand dividers sat too far in. `extract_zpk.py` now picks the package by device ID, defaulting to the Balance 3 (11141376).
+- **Packages:** a `.zab` holds one `.zpk` per screen and chip. Sextant's first test builds installed the 454×454 build, because the package extraction took the first one. That made the face about 5% small and anchored top-left, which is why the time looked too small and the right-hand dividers sat too far in. `extract_zpk.py` now picks the package by device ID, defaulting to the Balance 3 (11141376).
 - **Arc angles:** truncated to whole degrees (see above). This was the cause of the north marker crowding the tick to its right.
 - **Text:** the firmware matches the line-box model in `text_box_for_ink_centre()` to within half a pixel, as long as boxes sit on whole pixels. Fractional `y` values were being rounded about 1–2px low. `FIRMWARE_TEXT_DY` in `lib/py/zfkit/fonts.py` is the calibration term, and it's 0.
 - **Arcs:** `radius` is the centre of the stroke (the ticks use `r_center`). The ticks match the offline renders exactly.
@@ -228,7 +231,7 @@ Repository settings (owner, one time): **Settings → Branches → add a rule fo
 
 Each face is versioned and released on its own. The version is `version.name` in `faces/<face>/app.json`, and the release notes come from `faces/<face>/CHANGELOG.md` ([Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format). `.github/workflows/build.yml`:
 
-- **On every push and pull request:** runs `tools/release_plan.py`, which fails if any face's current version has no changelog section. Then it runs the harness and builds every face with Zeus.
+- **On every push and pull request:** runs `zepp-devkit release-plan` (the faces are listed in `zepp-devkit.json`), which fails if any face's current version has no changelog section. Then it runs the harness and builds every face with Zeus.
 - **On `main`, for each face whose `<face>-vX.Y.Z` tag doesn't exist yet:** creates the tag and a GitHub release titled e.g. "Sextant 1.1.0". The release notes are that version's changelog section plus install instructions, and `<face>-X.Y.Z.zpk` and `.zab` are attached. Anyone watching the repo for releases gets notified.
 - **On every push to `main` or `dev`:** builds a DEV test build of every face from the tip of `dev` and redeploys the Pages site. A scheduled run every 5 days does the same, to keep the test builds' preview codes from expiring (see "Preview uploads from CI"). The public part of the site always comes from the latest release of every face, so the main QR codes install released versions, never unreleased work.
 
@@ -248,11 +251,7 @@ Each face's QR code (`faces/<face>/docs/install-qr.png`) encodes `zpkd1://raetha
 
 ### Preview uploads from CI
 
-For each face, CI's DEV step runs the real `zeus preview -s -t "<TEST_WATCHES>"` from `faces/<face>-dev/` (`tools/zeus_preview.sh`). `TEST_WATCHES` in `build.yml` is "Amazfit Balance 3,Amazfit Balance 3 Ti" (the 3 Ti is a separate model in Zeus); a comma-separated list needs `-s`. Zeus builds its own package in preview mode for those watches only, without the intermediate products a normal build carries (Zepp's server refuses a cut-down normal build: HTTP 500). The upload needs an app ID that belongs to the account, hence the registered DEV apps.
-
-- `tools/zeus_login.sh` puts the developer login into Zeus's own login file (`~/.zepp/.zeus`, keys `____user_zepp_com__token`, `…__userid`, `…__cname`, as `zeus login` writes them) while the script runs, and restores the file afterwards (`trap`). It adds a newline first: Zeus writes that file without a final one, and a key glued onto its last line makes Zeus open a login page and wait forever.
-- `tools/zeus_preview_hook.cjs` (loaded with `NODE_OPTIONS=--require`) prints the QR code's URL, which Zeus otherwise only draws in the terminal. The script writes `preview-url.txt`, `preview-qr.png` and `preview-expires.txt` into the face's output folder, and the run's log says "preview uploaded". Zeus runs with `</dev/null` and a timeout.
-- It runs only when all three repository secrets are set (**Settings → Secrets and variables → Actions**): `ZEPP_APPTOKEN`, `ZEPP_USERID`, `ZEPP_CNAME`. Without them the step skips the uploads. A failed or expired login is an error annotation on the run, not a failed build. It runs only for pushes to `dev` and `main`, never for pull requests (GitHub never gives secrets to forks' pull requests). Kestrel (`raetha/zepp-kestrel`) uses the same account, so the same values work in both repos.
+For each face, CI's DEV step runs `zepp-devkit preview faces/<face>-dev ... --watches "$TEST_WATCHES" --github`: the real `zeus preview -s -t "<TEST_WATCHES>"`, from [zepp-devkit](https://github.com/raetha/zepp-devkit), whose README explains what it does and why. `TEST_WATCHES` in `build.yml` is "Amazfit Balance 3,Amazfit Balance 3 Ti" (the 3 Ti is a separate model in Zeus). The upload needs an app ID that belongs to the account, hence the registered DEV apps. Without the three repository secrets (**Settings → Secrets and variables → Actions**: `ZEPP_APPTOKEN`, `ZEPP_USERID`, `ZEPP_CNAME`), or when an upload fails, it's a warning on a push's run and the page falls back to our own codes; a scheduled run fails (`zepp-devkit preview-check`), so an expired login gets noticed. It runs only for pushes to `dev` and `main` and on the schedule, never for pull requests. Kestrel (`raetha/zepp-kestrel`) uses the same account, so the same values work in both repositories; update both when the login expires.
 
 To get the secrets, from any browser including a phone:
 

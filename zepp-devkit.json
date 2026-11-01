@@ -1,0 +1,5 @@
+{
+  "components": [
+    {"each": "faces/*/app.json", "skip": ["*-dev"], "changelog": "{dir}/CHANGELOG.md", "draft": "{dir}/DRAFT", "title": "{app_name} {version}"}
+  ]
+}

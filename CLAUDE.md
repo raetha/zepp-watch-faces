@@ -17,21 +17,21 @@ Zepp OS watch faces for the Amazfit Balance 3 (480×480 round). Sextant is the f
 
   ```bash
   apt-get install -y libvte-2.91-0 libaio1t64 xvfb xdotool
-  pip install --break-system-packages -r tools/requirements.txt
+  pip install --break-system-packages -r tools/requirements.txt   # includes zepp-devkit
   npm install && npm install -g @zeppos/zeus-cli@1.9.3
-  node tools/emu/emu.mjs setup
-  node tools/emu/emu.mjs start && node tools/emu/emu.mjs enable-aod && node tools/emu/emu.mjs save-base
+  zepp-devkit emu setup
+  zepp-devkit emu start && zepp-devkit emu enable-aod && zepp-devkit emu save-base
   ```
 
 - Network allowlist needed: `*.zepp.com` and `*.huami.com`. That covers Zeus builds, `upload-cdn.zepp.com` (emulator and firmware) and `upload-cdn.huami.com` (device list). Node's `fetch` ignores the proxy, so the tools download with `curl`.
-- Loop: `node tools/emu/emu.mjs start`, then `install <face>`, then `set k=v …`, then `shot out.png`. Look at the PNG.
+- Loop: `zepp-devkit emu start`, then `install <face>`, then `set k=v …`, then `shot out.png`. Look at the PNG.
 - `npm run screenshots -- <face>` retakes the README screenshots (about 7 minutes) from `faces/<face>/emu-shots.json`.
 - The emulated watch has quirks (buttons, scrolling, screen timeout, settings applying at the minute tick). They're documented in `docs/development.md` → "Testing on the emulator", so read that before scripting new interactions.
 
 ## Hard-won facts (details in docs/development.md)
 
-- A `.zab` holds one `.zpk` per screen and chip. `tools/extract_zpk.py` must pick by device ID (Balance 3 = 11141376), not take the first one.
-- The emulator can't decode `zeus build`'s compressed images. `tools/emu/prepare.py` swaps the PNGs back in.
+- A `.zab` holds one `.zpk` per screen and chip. `zepp-devkit extract-zpk` picks by device ID (Balance 3 = 11141376), not the first one.
+- The emulator can't decode `zeus build`'s compressed images. `zepp-devkit emu install` swaps the PNGs back in.
 - Faces target API level 4.2 (`@zos/*` modules), the highest the Balance 2 emulator image runs. **When Zepp publishes a Balance 3 emulator image, move to 4.4 (or whatever is current).**
 - Face code can't read floors, the current weather, UV, humidity or air quality at any API level. They're bound widgets (`TEXT_FONT` / `IMG_LEVEL` with a data type).
 - The emulator only feeds test values to steps, calories, heart rate and battery reads; the other sensors read 0 there. `DEMO_VALUES` (a generator override) fakes readings for mock-ups.
@@ -41,4 +41,5 @@ Zepp OS watch faces for the Amazfit Balance 3 (480×480 round). Sextant is the f
 - Text boxes must sit on whole pixels. Arc `radius` is the centre of the stroke.
 - Arc angles are truncated to whole degrees, and arcs under 1° don't draw. Ticks use `geometry.tick_arc()`.
 - Edit mode shows only `ONLY_EDIT` widgets and the edit groups, in creation order.
-- Test builds only appear under the Zepp app's Developer Mode when installed from a real `zeus preview` upload (`tools/zeus_preview.sh`, run by CI with the `ZEPP_*` secrets) under a Console-registered DEV app ID (`DEV_APPIDS` in `tools/make_dev_variant.py`). Our own `.zpk` QR codes install but never get listed; they're only the test page's fallback. Previews expire after 7 days; a scheduled run every 5 days re-uploads them and fails when the upload does (expired login). Never print the Zepp app's log publicly or run `zeus bridge` in CI, and never handle the Zepp token in a chat or sandbox.
+- Test builds only appear under the Zepp app's Developer Mode when installed from a real `zeus preview` upload (`zepp-devkit preview`, run by CI with the `ZEPP_*` secrets) under a Console-registered DEV app ID (`DEV_APPIDS` in `tools/make_dev_variant.py`). Our own `.zpk` QR codes install but never get listed; they're only the test page's fallback. Previews expire after 7 days; a scheduled run every 5 days re-uploads them and fails when the upload does (expired login). Never print the Zepp app's log publicly or run `zeus bridge` in CI, and never handle the Zepp token in a chat or sandbox.
+- Shared Zepp tooling (DEV variants, previews, releases, packages, QR codes, the emulator) lives in raetha/zepp-devkit, pinned once in `tools/requirements.txt`: change it there, not here. This repo keeps its own settings and texts (`zepp-devkit.json`, `tools/make_dev_variant.py`, `tools/release_notes.py`, `tools/stores.py`, the pages).

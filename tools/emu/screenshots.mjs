@@ -6,8 +6,8 @@
  *
  *   node tools/emu/screenshots.mjs <face> [--run N]   (npm run screenshots -- <face>); --run: only that run
  *
- * Needs `node tools/emu/emu.mjs setup` and a base watch state with the always-on screen
- * turned on (`emu.mjs start`, `enable-aod`, `save-base`); see docs/development.md.
+ * Needs `zepp-devkit emu setup` and a base watch state with the always-on screen
+ * turned on (`zepp-devkit emu start`, `enable-aod`, `save-base`); see docs/development.md.
  *
  * Steps: {set: {...}} values on top of the file's "values"; {shot: name};
  * {aod: name} screen off -> always-on shot -> wake; {edit: "open" | "close"};
@@ -32,7 +32,7 @@ const raw = path.join(REPO, 'tools/.emu/shots', face);
 fs.mkdirSync(shots, { recursive: true });
 fs.mkdirSync(raw, { recursive: true });
 
-const emu = (...args) => execFileSync('node', [path.join(REPO, 'tools/emu/emu.mjs'), ...args.map(String)],
+const emu = (...args) => execFileSync('zepp-devkit', ['emu', ...args.map(String)],
   { stdio: ['ignore', 'pipe', 'inherit'] }).toString();
 const sleep = (ms) => execFileSync('sleep', [String(ms / 1000)]);
 // The screen times out to the always-on view between steps; a tap on the face wakes it

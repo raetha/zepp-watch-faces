@@ -63,7 +63,7 @@ jobs:
 
       - name: Check changelogs and plan releases
         id: plan
-        run: python3 tools/release_plan.py --github
+        run: zepp-devkit release-plan --github
 
       - name: Run the offline harness (every face, every scenario)
         run: npm test
@@ -78,7 +78,7 @@ jobs:
             echo "::group::$face $version"
             (cd "$dir" && zeus build)
             mkdir -p "out/$face"
-            python3 tools/extract_zpk.py "$dir/dist" "out/$face/$face-$version.zpk"
+            zepp-devkit extract-zpk "$dir/dist" "out/$face/$face-$version.zpk"
             cp "$dir"/dist/*.zab "out/$face/$face-$version.zab"
             echo "::endgroup::"
           done
@@ -102,13 +102,6 @@ jobs:
         run: |
           set -e
           out="$PWD/out-dev"
-          preview=
-          if [ -n "$ZEPP_APPTOKEN" ] && [ -n "$ZEPP_USERID" ] && [ -n "$ZEPP_CNAME" ]; then
-            preview=1
-          else
-            echo "No ZEPP_* secrets: no preview uploads (the test page shows our own QR codes)"
-            echo "preview_failed=no secrets" >> "$GITHUB_OUTPUT"
-          fi
           # a push to main still publishes dev's test builds, so the page never goes backwards
           if [ "$GITHUB_REF" != refs/heads/dev ] && git rev-parse -q --verify origin/dev >/dev/null; then
             git worktree add -q ../dev-tree origin/dev
@@ -124,15 +117,11 @@ jobs:
             python3 tools/make_dev_variant.py "$face" "$GITHUB_RUN_NUMBER" "$short"
             (cd "faces/$face-dev" && zeus build)
             mkdir -p "$out/$face"
-            python3 tools/extract_zpk.py "faces/$face-dev/dist" "$out/$face/$face.zpk"
-            # the real zeus preview (it builds its own package, in preview mode, for TEST_WATCHES);
-            # a failed upload is a warning, not a failed build: the page falls back to our .zpk
-            if [ -n "$preview" ]; then
-              tools/zeus_preview.sh "faces/$face-dev" "$out/$face" "$TEST_WATCHES" || {
-                echo "::warning title=Zepp preview ($face)::upload failed (see the annotation above); the test page falls back to our own QR code"
-                echo "preview_failed=upload failed" >> "$GITHUB_OUTPUT"
-              }
-            fi
+            zepp-devkit extract-zpk "faces/$face-dev/dist" "$out/$face/$face.zpk"
+            # the real zeus preview (zepp-devkit: it builds its own package, in preview mode, for
+            # TEST_WATCHES); no login or a failed upload is a warning and sets preview_failed,
+            # not a failed build: the page falls back to our .zpk
+            zepp-devkit preview "faces/$face-dev" "$out/$face" --watches "$TEST_WATCHES" --label "$face DEV" --github
             echo "::endgroup::"
           done
 
@@ -156,13 +145,20 @@ jobs:
           name: watch-faces
           path: out
 
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+
+      - name: Install tooling
+        run: pip install -r tools/requirements.txt
+
       - name: Create a GitHub release per changed face
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASES: ${{ needs.build.outputs.releases }}
         run: |
           set -e
-          echo "$RELEASES" | python3 -c "import json,sys; [print(r['face'], r['version'], r['tag'], r['title'], sep='\t') for r in json.load(sys.stdin)]" |
+          echo "$RELEASES" | python3 -c "import json,sys; [print(r['component'], r['version'], r['tag'], r['title'], sep='\t') for r in json.load(sys.stdin)]" |
           while IFS=$'\t' read -r face version tag title; do
             python3 tools/release_notes.py "$face" "$version" > notes.md
             gh release create "$tag" --target "$GITHUB_SHA" --title "$title" --notes-file notes.md \
@@ -270,16 +266,17 @@ jobs:
     if: always() && github.event_name == 'schedule'
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+
+      - name: Install tooling
+        run: pip install -r tools/requirements.txt
+
       - name: Check the previews uploaded
         env:
           FAILED: ${{ needs.build.outputs.preview_failed }}
           BUILD: ${{ needs.build.result }}
-        run: |
-          if [ "$BUILD" != success ]; then
-            echo "::error title=Zepp preview::the build failed, so no test builds were refreshed"; exit 1
-          fi
-          if [ -n "$FAILED" ]; then
-            echo "::error title=Zepp preview::$FAILED. If the log says the login expired, get new values and update ZEPP_APPTOKEN, ZEPP_USERID and ZEPP_CNAME here and in zepp-kestrel (docs/development.md -> \"Preview uploads from CI\")."
-            exit 1
-          fi
-          echo "previews refreshed"
+        run: zepp-devkit preview-check --build-result "$BUILD" --failed "$FAILED" --repositories "zepp-watch-faces and zepp-kestrel"
