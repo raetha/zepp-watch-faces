@@ -8,18 +8,30 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from changelog import section  # noqa: E402
+from stores import store_lines_md  # noqa: E402
+import json
 
 face, version = sys.argv[1], sys.argv[2]
 body = section(face, version)
 if body is None:
     sys.exit(f"no changelog section for {face} {version}")
 raw = "https://raw.githubusercontent.com/raetha/zepp-watch-faces/main"
+app_name = json.loads((Path(__file__).resolve().parents[1] / "faces" / face / "app.json").read_text())["app"]["appName"]
 print(f"""{body}
 
 ---
 
-**Install:** in the Zepp app, turn on Developer Mode (Profile → Settings → About, tap the logo 7 times), then Profile → your watch → Developer Mode → scan:
+**Install:**
 
-<img src="{raw}/faces/{face}/docs/install-qr.png" width="180" alt="Install QR code">
+{store_lines_md(face, app_name)}
 
-Or download `{face}-{version}.zpk` below. More details: [faces/{face}](https://github.com/raetha/zepp-watch-faces/tree/main/faces/{face}) · [install page](https://raetha.github.io/zepp-watch-faces/)""")
+<details><summary>Sideload instead (Developer Mode)</summary>
+
+In the Zepp app, turn on Developer Mode (Profile → Settings → About, tap the logo 7 times), then Profile → your watch → Developer Mode → scan. A sideloaded face doesn't get store updates.
+
+<img src="{raw}/faces/{face}/docs/install-qr.png" width="160" alt="Install QR code">
+
+Or download `{face}-{version}.zpk` below.
+</details>
+
+More details: [faces/{face}](https://github.com/raetha/zepp-watch-faces/tree/main/faces/{face}) · [install page](https://raetha.github.io/zepp-watch-faces/)""")

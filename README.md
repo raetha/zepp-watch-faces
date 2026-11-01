@@ -6,14 +6,14 @@ Watch faces for Amazfit watches running Zepp OS, designed for the **Balance 3** 
 
 | | Face | |
 | :---: | --- | :---: |
-| <img src="faces/sextant/screenshots/day.png" width="200"> | **[Sextant](faces/sextant/)**<br>Nautical and data-rich: a navy and brass time bar, six editable complications with compass-tick gauges, automatic red night mode, a mono theme and an outline always-on display. | <img src="faces/sextant/docs/install-qr.png" width="140"><br><sub>scan to install</sub> |
-| <img src="faces/twisted-sextant/screenshots/day.png" width="200"> | **[Twisted Sextant](faces/twisted-sextant/)**<br>Sextant with the corner complications turned to run along their gauges, and weather fixed at the top. | <img src="faces/twisted-sextant/docs/install-qr.png" width="140"><br><sub>scan to install</sub> |
+| <img src="faces/sextant/screenshots/day.png" width="200"> | **[Sextant](faces/sextant/)**<br>Nautical and data-rich: a navy and brass time bar, six editable complications with compass-tick gauges, automatic red night mode, a mono theme and an outline always-on display. | [amazfitwatchfaces.com](https://amazfitwatchfaces.com/balance/view/9036) |
+| <img src="faces/twisted-sextant/screenshots/day.png" width="200"> | **[Twisted Sextant](faces/twisted-sextant/)**<br>Sextant with the corner complications turned to run along their gauges, and weather fixed at the top. | [amazfitwatchfaces.com](https://amazfitwatchfaces.com/balance/view/9037) |
 
 ## Installing a face
 
-1. In the **Zepp app**, turn on Developer Mode: **Profile → Settings → About**, then tap the Zepp logo 7 times.
-2. Go to **Profile → your watch → Developer Mode** and tap the **scan** icon.
-3. Scan the face's QR code (above, or on the [install page](https://raetha.github.io/zepp-watch-faces/)) and confirm.
+Install from the **Zepp store** (in the Zepp app, open your watch's watch face store and search for the face's name) or from **[amazfitwatchfaces.com](https://amazfitwatchfaces.com/)** (links above).
+
+To sideload instead (for testing, or a watch the stores don't offer), use the QR code in the face's README or on the [install page](https://raetha.github.io/zepp-watch-faces/): in the Zepp app, turn on Developer Mode (**Profile → Settings → About**, tap the Zepp logo 7 times), then **Profile → your watch → Developer Mode → scan**. A sideloaded face doesn't get store updates.
 
 Each face is versioned separately. Its QR code always installs its latest release, and each release (with that face's changelog) appears on the repo's [Releases](https://github.com/raetha/zepp-watch-faces/releases) page, so you can watch the repo for release notifications.
 

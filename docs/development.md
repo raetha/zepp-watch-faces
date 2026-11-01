@@ -19,7 +19,7 @@ This is the canonical guide for the repository. Read it before changing anything
 | `lib/js/` | Shared runtime helpers: `format.js`, `sun.js` (sunrise, sunset, night detection), `metrics.js` (complication definitions). |
 | `lib/py/zfkit/` | Shared generator helpers: `fonts.py` (instancing, subsetting, text-box maths), `icons.py` (original icon artwork). |
 | `tools/emu/` | Runs faces on the real Zepp OS firmware in QEMU (see "Testing on the emulator"). |
-| `tools/` | `generate.py` (all faces), `harness/` (offline runner), `preview.py`, `make_covers.py`, `make_qr.py`, `extract_zpk.py`, `build_site.py`, `new_face.py`, and the release helpers `release_plan.py`, `changelog.py`, `release_notes.py`. |
+| `tools/` | `generate.py` (all faces), `harness/` (offline runner), `preview.py`, `make_covers.py`, `make_qr.py`, `extract_zpk.py`, `build_site.py`, `stores.py` (each face's store links, used by the install page and release notes), `new_face.py`, the release helpers `release_plan.py`, `changelog.py`, `release_notes.py`, and the test-build helpers `make_dev_variant.py`, `dev_site.py`, `zeus_preview.sh`, `zeus_login.sh`, `zeus_preview_hook.cjs` (see "Test builds"). |
 | `fonts/` | The OFL variable font Roboto Condensed and its licence. |
 
 Faces import shared JS with relative paths, for example `import { isNight } from '../../../lib/js/sun';`. Zeus bundles these when building the face.
@@ -230,7 +230,7 @@ Each face is versioned and released on its own. The version is `version.name` in
 
 - **On every push and pull request:** runs `tools/release_plan.py`, which fails if any face's current version has no changelog section. Then it runs the harness and builds every face with Zeus.
 - **On `main`, for each face whose `<face>-vX.Y.Z` tag doesn't exist yet:** creates the tag and a GitHub release titled e.g. "Sextant 1.1.0". The release notes are that version's changelog section plus install instructions, and `<face>-X.Y.Z.zpk` and `.zab` are attached. Anyone watching the repo for releases gets notified.
-- **On every push to `main` or `dev`:** builds a DEV test build of every face from the tip of `dev` and redeploys the Pages site. The public part of the site always comes from the latest release of every face, so the main QR codes install released versions, never unreleased work.
+- **On every push to `main` or `dev`:** builds a DEV test build of every face from the tip of `dev` and redeploys the Pages site. A scheduled run every 5 days does the same, to keep the test builds' preview codes from expiring (see "Preview uploads from CI"). The public part of the site always comes from the latest release of every face, so the main QR codes install released versions, never unreleased work.
 
 A manual run (**Actions → Build and publish → Run workflow**) rebuilds the site the same way.
 
@@ -238,18 +238,38 @@ A manual run (**Actions → Build and publish → Run workflow**) rebuilds the s
 
 Every push to `dev` (or `main`) publishes a test build of each face, from the tip of `dev`, on an unlisted page: **https://raetha.github.io/zepp-watch-faces/dev/**. It isn't linked from the main site, is marked `noindex`, and is blocked in `robots.txt`. Each run's summary also links to it.
 
-- `tools/make_dev_variant.py` copies the face to `faces/<face>-dev/` (ignored by git). It gets its own `appId` (release ID + 1,000,000), the name "<Name> DEV" and the version `<X.Y.Z>-dev.<run number>`.
+- `tools/make_dev_variant.py` copies the face to `faces/<face>-dev/` (ignored by git). It gets the name "<Name> DEV", the version `<X.Y.Z>-dev.<run number>`, and its own `appId`: the face's "<Name> DEV" app registered in the Zepp Console (the `DEV_APPIDS` table). A face with no entry there falls back to its release ID + 1,000,000 (see "App IDs").
 - Because the app ID differs, a test build installs **next to** the released face instead of replacing it. Pick it in the watch's face list to try it, then switch back.
-- Its QR code (`zpkd1://raetha.github.io/zepp-watch-faces/dev/<face>/<face>.zpk`) never changes, so bookmark the page and rescan after each push. The Zepp app shows the build number, so you can confirm it picked up the new one. GitHub Pages can cache files for up to 10 minutes.
+- **Install:** with the preview secrets set (see "Preview uploads from CI"), each face's card on the page shows a Zepp preview QR code. In the Zepp app: **Profile → your watch → Developer Mode → + → Scan**. The face then shows up in the Developer Mode list. Each push makes a new code, and a code expires after 7 days, so reopen the page rather than bookmarking a code. GitHub Pages can cache files for up to 10 minutes.
+- Without the secrets, or when a face's upload failed (a warning on the run, not a failed build), its card falls back to a QR code for our own package (`zpkd1://raetha.github.io/zepp-watch-faces/dev/<face>/<face>.zpk`). That installs the face, but the Zepp app never lists it under Developer Mode: only a real `zeus preview` upload does (tried in Kestrel: our own `.zpk` codes, a `.zab` and a copy of Zeus's upload request never showed up).
 - The plan is to test on the watch, fix, push to `dev` and repeat. Only when it all looks right does a release pull request finalize the changelog and bump `app.json`.
 
 Each face's QR code (`faces/<face>/docs/install-qr.png`) encodes `zpkd1://raetha.github.io/zepp-watch-faces/<face>/<face>.zpk`, so it never needs regenerating. If the repo moves, run `npm run qr -- <face> <new zpkd1 url>`.
+
+### Preview uploads from CI
+
+For each face, CI's DEV step runs the real `zeus preview -s -t "<TEST_WATCHES>"` from `faces/<face>-dev/` (`tools/zeus_preview.sh`). `TEST_WATCHES` in `build.yml` is "Amazfit Balance 3,Amazfit Balance 3 Ti" (the 3 Ti is a separate model in Zeus); a comma-separated list needs `-s`. Zeus builds its own package in preview mode for those watches only, without the intermediate products a normal build carries (Zepp's server refuses a cut-down normal build: HTTP 500). The upload needs an app ID that belongs to the account, hence the registered DEV apps.
+
+- `tools/zeus_login.sh` puts the developer login into Zeus's own login file (`~/.zepp/.zeus`, keys `____user_zepp_com__token`, `…__userid`, `…__cname`, as `zeus login` writes them) while the script runs, and restores the file afterwards (`trap`). It adds a newline first: Zeus writes that file without a final one, and a key glued onto its last line makes Zeus open a login page and wait forever.
+- `tools/zeus_preview_hook.cjs` (loaded with `NODE_OPTIONS=--require`) prints the QR code's URL, which Zeus otherwise only draws in the terminal. The script writes `preview-url.txt`, `preview-qr.png` and `preview-expires.txt` into the face's output folder, and the run's log says "preview uploaded". Zeus runs with `</dev/null` and a timeout.
+- It runs only when all three repository secrets are set (**Settings → Secrets and variables → Actions**): `ZEPP_APPTOKEN`, `ZEPP_USERID`, `ZEPP_CNAME`. Without them the step skips the uploads. A failed or expired login is an error annotation on the run, not a failed build. It runs only for pushes to `dev` and `main`, never for pull requests (GitHub never gives secrets to forks' pull requests). Kestrel (`raetha/zepp-kestrel`) uses the same account, so the same values work in both repos.
+
+To get the secrets, from any browser including a phone:
+
+1. Open https://user.zepp.com/universalLogin/index.html#/login?project_name=zeppos_zeus_cli&platform_app=com.huami.webapp&project_redirect_uri=http%3A%2F%2Flocalhost%3A8765%2Flogin%2Fcallback and sign in with the Zepp developer account.
+2. The browser then tries to open `http://localhost:8765/login/callback?apptoken=…&userid=…&cname=…` and fails to connect. That's expected: the address bar holds the values. Copy them into the three secrets (`apptoken` → `ZEPP_APPTOKEN`, `userid` → `ZEPP_USERID`, `cname` → `ZEPP_CNAME`; still URL-encoded is fine).
+
+When the token expires, the run says so ("Zepp refused the login"): repeat both steps.
+
+**Keeping previews valid:** the workflow also runs on a schedule, every 5 days (`17 9 */5 * *`, UTC), and rebuilds and re-uploads the test builds from the tip of `dev`, so the page always has codes that haven't expired, even when nobody is pushing. A scheduled run fails (`preview-check` job, after the site is redeployed with whatever it has) when a preview didn't upload or the secrets are missing, so GitHub emails the owner. That's the early warning that the login has expired. Pushes still treat a failed upload as a warning. GitHub runs scheduled workflows from `main`'s copy of `build.yml`, so a change to the schedule takes effect with the next release, and it pauses them after 60 days without activity in the repo (re-enable under **Actions**).
+
+Security: treat the token like a password, and never paste it into a chat or a sandbox. The decoded values are masked in logs (`::add-mask::`), and the login file exists only on the job's throwaway runner. Never print the Zepp app's log anywhere public (it holds every app's stored settings), and never run `zeus bridge` in CI: once connected, it streams that log.
 
 **Draft faces:** a face containing a `DRAFT` file is built and tested but never released. `npm run new-face` creates one; delete the file when the face is ready for its first release.
 
 ### App IDs
 
-Each face has its own `appId`. Sextant (1131924) and Twisted Sextant (1131925) use the IDs the Zepp Console assigned for their store listings, and QR installs use the same IDs. `new_face.py` picks an unused random one outside the developer-preview range, so QR installs work without a Zepp developer account; replace it with the Console's ID before submitting a face to the store.
+Each face has its own `appId`. Sextant (1131924) and Twisted Sextant (1131925) use the IDs the Zepp Console assigned for their store listings, and QR installs use the same IDs. Test builds use a separate "<Name> DEV" app per face, registered in the Console and listed in `DEV_APPIDS` in `tools/make_dev_variant.py`: Sextant DEV (1134218) and Twisted Sextant DEV (1134219), since Nov 1, 2026. A new face gets one too; until then it uses its release ID + 1,000,000, which can't be uploaded as a preview. Older test builds used those offset IDs (2131924, 2131925): they're separate apps that no longer update, so delete them from the watch. `new_face.py` picks an unused random one outside the developer-preview range, so QR installs work without a Zepp developer account; replace it with the Console's ID before submitting a face to the store.
 
 ## Licensing (when adding code)
 

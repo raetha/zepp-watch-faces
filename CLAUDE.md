@@ -41,3 +41,4 @@ Zepp OS watch faces for the Amazfit Balance 3 (480×480 round). Sextant is the f
 - Text boxes must sit on whole pixels. Arc `radius` is the centre of the stroke.
 - Arc angles are truncated to whole degrees, and arcs under 1° don't draw. Ticks use `geometry.tick_arc()`.
 - Edit mode shows only `ONLY_EDIT` widgets and the edit groups, in creation order.
+- Test builds only appear under the Zepp app's Developer Mode when installed from a real `zeus preview` upload (`tools/zeus_preview.sh`, run by CI with the `ZEPP_*` secrets) under a Console-registered DEV app ID (`DEV_APPIDS` in `tools/make_dev_variant.py`). Our own `.zpk` QR codes install but never get listed; they're only the test page's fallback. Previews expire after 7 days; a scheduled run every 5 days re-uploads them and fails when the upload does (expired login). Never print the Zepp app's log publicly or run `zeus bridge` in CI, and never handle the Zepp token in a chat or sandbox.

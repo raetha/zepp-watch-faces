@@ -2,6 +2,12 @@
 
 What's already in place, what's left, and the store-facing text for each face. The store review takes about 1–5 working days ([How to submit a watchface](https://docs.zepp.com/docs/distribute/watchface/)).
 
+## Where the faces are published
+
+- **Zepp store:** Sextant and Twisted Sextant are submitted (October 2026). The store has no web pages, so the install texts tell people to search for the face's name in the Zepp app.
+- **amazfitwatchfaces.com:** [Sextant](https://amazfitwatchfaces.com/balance/view/9036) and [Twisted Sextant](https://amazfitwatchfaces.com/balance/view/9037). These links live in `tools/stores.py` (install page, release notes) and in the READMEs; add a new face's page there.
+- The stores are the recommended way to install. The QR codes and `.zpk` downloads stay available as "sideload" options (they install a working face, but it isn't listed under the Zepp app's Developer Mode and doesn't get store updates).
+
 ## Already in place
 
 - **Package:** CI attaches a `.zab` to every release (`faces/<face>/dist/*.zab` locally). That's the file the store takes.
