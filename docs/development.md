@@ -230,7 +230,7 @@ Each face is versioned and released on its own. The version is `version.name` in
 
 - **On every push and pull request:** runs `tools/release_plan.py`, which fails if any face's current version has no changelog section. Then it runs the harness and builds every face with Zeus.
 - **On `main`, for each face whose `<face>-vX.Y.Z` tag doesn't exist yet:** creates the tag and a GitHub release titled e.g. "Sextant 1.1.0". The release notes are that version's changelog section plus install instructions, and `<face>-X.Y.Z.zpk` and `.zab` are attached. Anyone watching the repo for releases gets notified.
-- **On every push to `main` or `dev`:** builds a DEV test build of every face from the tip of `dev` and redeploys the Pages site. The public part of the site always comes from the latest release of every face, so the main QR codes install released versions, never unreleased work.
+- **On every push to `main` or `dev`:** builds a DEV test build of every face from the tip of `dev` and redeploys the Pages site. A scheduled run every 5 days does the same, to keep the test builds' preview codes from expiring (see "Preview uploads from CI"). The public part of the site always comes from the latest release of every face, so the main QR codes install released versions, never unreleased work.
 
 A manual run (**Actions → Build and publish → Run workflow**) rebuilds the site the same way.
 
@@ -260,6 +260,8 @@ To get the secrets, from any browser including a phone:
 2. The browser then tries to open `http://localhost:8765/login/callback?apptoken=…&userid=…&cname=…` and fails to connect. That's expected: the address bar holds the values. Copy them into the three secrets (`apptoken` → `ZEPP_APPTOKEN`, `userid` → `ZEPP_USERID`, `cname` → `ZEPP_CNAME`; still URL-encoded is fine).
 
 When the token expires, the run says so ("Zepp refused the login"): repeat both steps.
+
+**Keeping previews valid:** the workflow also runs on a schedule, every 5 days (`17 9 */5 * *`, UTC), and rebuilds and re-uploads the test builds from the tip of `dev`, so the page always has codes that haven't expired, even when nobody is pushing. A scheduled run fails (`preview-check` job, after the site is redeployed with whatever it has) when a preview didn't upload or the secrets are missing, so GitHub emails the owner. That's the early warning that the login has expired. Pushes still treat a failed upload as a warning. GitHub runs scheduled workflows from `main`'s copy of `build.yml`, so a change to the schedule takes effect with the next release, and it pauses them after 60 days without activity in the repo (re-enable under **Actions**).
 
 Security: treat the token like a password, and never paste it into a chat or a sandbox. The decoded values are masked in logs (`::add-mask::`), and the login file exists only on the job's throwaway runner. Never print the Zepp app's log anywhere public (it holds every app's stored settings), and never run `zeus bridge` in CI: once connected, it streams that log.
 
