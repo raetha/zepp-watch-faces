@@ -11,7 +11,7 @@
     "new-face": "python3 tools/new_face.py",
     "qr": "python3 tools/make_qr.py",
     "previews": "node tools/harness/run_scenarios.mjs --render",
-    "emu": "node tools/emu/emu.mjs"
+    "emu": "zepp-devkit emu"
   },
   "devDependencies": {
     "esbuild": "0.25.10",
