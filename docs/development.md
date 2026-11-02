@@ -225,7 +225,12 @@ Releasing (only when the owner asks):
 
 Versions follow [Semantic Versioning](https://semver.org/): a new complication, option or look is a minor version (1.1.0), a fix with nothing new is a patch (1.0.1), and a change that drops or renames something people have set up (a removed complication, a slot that moves) is a major version (2.0.0).
 
-Repository settings (owner, one time): **Settings → Branches → add a rule for `main`**: require a pull request before merging, and allow only squash merging (**Settings → General → Pull Requests**). Pages: **Settings → Pages → Source: GitHub Actions**.
+Repository settings (owner, one time):
+
+- **Settings → Rules → Rulesets**: one for `main` (no deletion, no force pushes, a pull request before merging).
+- **Settings → General → Pull Requests**: allow only squash merging, and **Automatically delete head branches** (merged `try/…` and Dependabot branches go).
+- **Settings → Branches → classic branch protection rule for `dev`**: nothing required, deletions not allowed (so auto-delete never removes it after a release pull request), and **force pushes allowed** (the `sync-dev` job resets `dev` to `main` with one). A classic rule, not a ruleset: a ruleset's "Restrict deletions" has been reported not to stop auto-delete when an admin can bypass it.
+- **Settings → Pages → Source: GitHub Actions**.
 
 ### What CI does
 
