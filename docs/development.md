@@ -227,7 +227,7 @@ Versions follow [Semantic Versioning](https://semver.org/): a new complication, 
 
 Repository settings (owner, one time):
 
-- **Settings → Rules → Rulesets**: one for `main` (no deletion, no force pushes, a pull request before merging).
+- **Settings → Rules → Rulesets**: one for `main` (no deletion, no force pushes, a pull request before merging, squash only). **Require status checks:** `CI passed` (the gate job in `build.yml`). **Require code scanning results:** CodeQL.
 - **Settings → General → Pull Requests**: allow only squash merging, and **Automatically delete head branches** (merged `try/…` and Dependabot branches go).
 - **Settings → Branches → classic branch protection rule for `dev`**: nothing required, deletions not allowed (so auto-delete never removes it after a release pull request), and **force pushes allowed** (the `sync-dev` job resets `dev` to `main` with one). A classic rule, not a ruleset: a ruleset's "Restrict deletions" has been reported not to stop auto-delete when an admin can bypass it.
 - **Settings → Pages → Source: GitHub Actions**.
@@ -280,11 +280,3 @@ Each face has its own `appId`. Sextant (1131924) and Twisted Sextant (1131925) u
 - **Reusable code** goes in `lib/` or `tools/`, which are MIT.
 - **Face-specific artwork, layout and code** goes in `faces/<face>/`, which is CC BY-NC-SA 4.0.
 - **Each face keeps its own `LICENSE`.** See the root `LICENSE`.
-
-## Packaging for delivery
-
-Sessions normally commit and push. When a session has only read access, deliver the whole repo tree as a zip instead, excluding build output:
-
-```bash
-zip -r zepp-watch-faces.zip . -x ".git/*" "node_modules/*" "*/dist/*" "tools/.build/*" "tools/.emu/*" "*/__pycache__/*" "site/*" "release/*" "out/*" "out-dev/*" "faces/*-dev/*" "faces/*/previews/*"
-```
