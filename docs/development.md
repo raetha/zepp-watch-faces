@@ -211,14 +211,15 @@ See `docs/store.md`: what's in place for the Zepp store, what needs the develope
 
 Day to day:
 
-1. Small, settled changes go straight onto `dev`.
-2. Anything exploratory starts on `try/<topic>`. If it's adopted, merge it into `dev` (`git merge --squash`, one commit with a clear message) and delete the branch. If not, delete the branch and note the idea in the face's `docs/design.md` → "Tried and dropped".
+1. Claude runs `dev`: small, settled changes go straight onto it, and `dev` must stay releasable.
+2. Anything exploratory or larger starts on `try/<topic>` with a pull request into `dev`, so CI runs first. If it's adopted, Claude squash-merges it into `dev` once CI is green; a change that needs the owner's decision waits on its branch until they've seen it. If it's dropped, delete the branch and note the idea in the face's `docs/design.md` → "Tried and dropped".
 3. Each adopted change adds a line under `## [Unreleased]` in each affected face's `CHANGELOG.md`, written for someone installing the face. Mock-ups and reverted tries get no changelog line.
-4. Test on the watch from the test-build page after each push to `dev`.
+4. **`dev` holds each face's expected next version.** With a face's first change after its release, set `version.name` in its `app.json` to what that change calls for (see the version rules below) and increase `version.code` by one; raise it if a later change calls for more. Changes nobody installing the face would notice (docs, CI, tooling) don't move it.
+5. Test on the watch from the test-build page after each push to `dev`.
 
 Releasing (only when the owner asks):
 
-1. On `dev`, for each face being released: rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` (with a fresh empty `## [Unreleased]` above it), set `version.name` in `app.json` to `X.Y.Z` and increase `version.code` by one. Faces without changes keep their version and aren't released.
+1. On `dev`, for each face being released: rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` (with a fresh empty `## [Unreleased]` above it) and check `version.name` in `app.json` is already `X.Y.Z`. Faces without changes keep their version and aren't released.
 2. Open a pull request from `dev` into `main`, titled with what it releases ("Sextant 1.1.0, Twisted Sextant 1.0.1"). The description is the new changelog sections. CI runs on it.
 3. The owner squash-merges it, keeping the title as the commit message and the changelog sections as its body.
 4. CI on `main` creates each release, then resets `dev` to `main` (the `sync-dev` job). A squash merge doesn't carry `dev`'s commits over, so this keeps `dev` from showing them as unmerged. It only does this when `dev` has the same files as `main`; if work landed on `dev` after the pull request was opened, reset it by hand once that work is in a release (`git checkout dev && git reset --hard origin/main && git push --force-with-lease`).
@@ -227,7 +228,7 @@ Versions follow [Semantic Versioning](https://semver.org/): a new complication, 
 
 Repository settings (owner, one time):
 
-- **Settings → Rules → Rulesets**: one for `main` (no deletion, no force pushes, a pull request before merging).
+- **Settings → Rules → Rulesets**: one for `main` (no deletion, no force pushes, a pull request before merging, squash only). **Require status checks:** `CI passed` (the gate job in `build.yml`). **Require code scanning results:** CodeQL.
 - **Settings → General → Pull Requests**: allow only squash merging, and **Automatically delete head branches** (merged `try/…` and Dependabot branches go).
 - **Settings → Branches → classic branch protection rule for `dev`**: nothing required, deletions not allowed (so auto-delete never removes it after a release pull request), and **force pushes allowed** (the `sync-dev` job resets `dev` to `main` with one). A classic rule, not a ruleset: a ruleset's "Restrict deletions" has been reported not to stop auto-delete when an admin can bypass it.
 - **Settings → Pages → Source: GitHub Actions**.
@@ -236,7 +237,7 @@ Repository settings (owner, one time):
 
 Each face is versioned and released on its own. The version is `version.name` in `faces/<face>/app.json`, and the release notes come from `faces/<face>/CHANGELOG.md` ([Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format). `.github/workflows/build.yml`:
 
-- **On every push and pull request:** runs `zepp-devkit release-plan` (the faces are listed in `zepp-devkit.json`), which fails if any face's current version has no changelog section. Then it runs the harness and builds every face with Zeus.
+- **On every push and pull request:** runs `zepp-devkit release-plan` (the faces are listed in `zepp-devkit.json`), which fails if a face's version has no changelog section: on `dev` an `[Unreleased]` section is enough for the expected next version, while `main` and pull requests into it need `## [X.Y.Z]`. Then it runs the harness and builds every face with Zeus.
 - **On `main`, for each face whose `<face>-vX.Y.Z` tag doesn't exist yet:** creates the tag and a GitHub release titled e.g. "Sextant 1.1.0". The release notes are that version's changelog section plus install instructions, and `<face>-X.Y.Z.zpk` and `.zab` are attached. Anyone watching the repo for releases gets notified.
 - **On every push to `main` or `dev`:** builds a DEV test build of every face from the tip of `dev` and redeploys the Pages site. A scheduled run every 5 days does the same, to keep the test builds' preview codes from expiring (see "Preview uploads from CI"). The public part of the site always comes from the latest release of every face, so the main QR codes install released versions, never unreleased work.
 
@@ -280,11 +281,3 @@ Each face has its own `appId`. Sextant (1131924) and Twisted Sextant (1131925) u
 - **Reusable code** goes in `lib/` or `tools/`, which are MIT.
 - **Face-specific artwork, layout and code** goes in `faces/<face>/`, which is CC BY-NC-SA 4.0.
 - **Each face keeps its own `LICENSE`.** See the root `LICENSE`.
-
-## Packaging for delivery
-
-Sessions normally commit and push. When a session has only read access, deliver the whole repo tree as a zip instead, excluding build output:
-
-```bash
-zip -r zepp-watch-faces.zip . -x ".git/*" "node_modules/*" "*/dist/*" "tools/.build/*" "tools/.emu/*" "*/__pycache__/*" "site/*" "release/*" "out/*" "out-dev/*" "faces/*-dev/*" "faces/*/previews/*"
-```

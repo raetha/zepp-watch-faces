@@ -44,6 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0          # tags are needed to know what is already released
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -63,7 +64,16 @@ jobs:
 
       - name: Check changelogs and plan releases
         id: plan
-        run: zepp-devkit release-plan --github
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        # dev holds each face's expected next version under [Unreleased]; a release (main, or a
+        # pull request into it) needs the version's own section
+        run: |
+          if [ "$GITHUB_REF" = refs/heads/main ] || [ "$BASE_REF" = main ]; then
+            zepp-devkit release-plan --github
+          else
+            zepp-devkit release-plan --dev --github
+          fi
 
       - name: Run the offline harness (every face, every scenario)
         run: npm test
@@ -139,6 +149,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -185,6 +197,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
@@ -267,6 +281,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
@@ -280,3 +296,19 @@ jobs:
           FAILED: ${{ needs.build.outputs.preview_failed }}
           BUILD: ${{ needs.build.result }}
         run: zepp-devkit preview-check --build-result "$BUILD" --failed "$FAILED" --repositories "zepp-watch-faces and zepp-kestrel"
+
+  # The one check the main ruleset requires: passes only when every check job above did, so
+  # jobs can be added or renamed without touching the ruleset.
+  ci:
+    name: CI passed
+    if: always()
+    needs: [build]
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - name: Every check job passed
+        env:
+          RESULTS: ${{ toJSON(needs.*.result) }}
+        run: |
+          echo "$RESULTS"
+          if echo "$RESULTS" | grep -qE '"(failure|cancelled)"'; then exit 1; fi
