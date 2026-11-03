@@ -7,6 +7,10 @@ All notable changes to the Sextant watch face. The format follows
 
 ## [Unreleased]
 
+### Internal
+
+- Release tags no longer have a "v" before the version (`sextant-1.2.0`, not `sextant-v1.2.0`); earlier releases keep their tags.
+
 ## [1.1.0] - 2026-10-19
 
 ### Changed
