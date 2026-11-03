@@ -64,7 +64,16 @@ jobs:
 
       - name: Check changelogs and plan releases
         id: plan
-        run: zepp-devkit release-plan --github
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        # dev holds each face's expected next version under [Unreleased]; a release (main, or a
+        # pull request into it) needs the version's own section
+        run: |
+          if [ "$GITHUB_REF" = refs/heads/main ] || [ "$BASE_REF" = main ]; then
+            zepp-devkit release-plan --github
+          else
+            zepp-devkit release-plan --dev --github
+          fi
 
       - name: Run the offline harness (every face, every scenario)
         run: npm test
