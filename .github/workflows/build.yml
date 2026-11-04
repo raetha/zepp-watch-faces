@@ -3,7 +3,8 @@ name: Build and publish
 # Branches (docs/development.md -> "Branches and releases"): work lands on `dev`, and
 # each release is one squash-merged pull request from `dev` into `main`.
 # Every push and pull request: changelog check, offline harness, Zeus build of every face.
-# Push to main: any face whose app.json version has no `<face>-v<version>` tag yet is
+# Push to main: any face whose app.json version has no `<face>-<version>` tag yet (nor the
+# older `<face>-v<version>`) is
 # released (tag + GitHub release with that version's changelog section).
 # Push to main or dev (and manual runs): builds a "DEV" test build of every face from the
 # tip of `dev` (own app ID, installs next to the release) and redeploys the Pages site:
@@ -212,10 +213,13 @@ jobs:
           tags=$(gh release list --limit 200 --json tagName --jq '.[].tagName')
           for dir in faces/*/; do
             face=$(basename "$dir")
-            tag=$(echo "$tags" | grep -E "^$face-v[0-9]" | sed "s/^$face-v//" | sort -V | tail -1)
-            [ -n "$tag" ] || { echo "$face: no release yet"; continue; }
+            # "<version> <tag>" for the newest release; tags up to 1.1.0 have a "v" before the version
+            latest=$(echo "$tags" | { grep -E "^$face-v?[0-9]+\.[0-9]+\.[0-9]+$" || true; } |
+              sed -E "s/^$face-v?(.*)$/\1 &/" | sort -V | tail -1)
+            [ -n "$latest" ] || { echo "$face: no release yet"; continue; }
+            tag=${latest%% *}
             mkdir -p "site/$face"
-            gh release download "$face-v$tag" --pattern "*.zpk" --dir "site/$face"
+            gh release download "${latest#* }" --pattern "*.zpk" --dir "site/$face"
             mv "site/$face/$face-$tag.zpk" "site/$face/$face.zpk"
             echo "$tag" > "site/$face/version.txt"
             echo "$face: publishing $tag"

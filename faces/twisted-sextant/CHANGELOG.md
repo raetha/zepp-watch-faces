@@ -5,6 +5,10 @@ The version here must match `version.name` in `app.json`; bumping it publishes a
 
 ## [Unreleased]
 
+### Internal
+
+- Release tags no longer have a "v" before the version (`twisted-sextant-1.2.0`, not `twisted-sextant-v1.2.0`); earlier releases keep their tags.
+
 ## [1.1.0] - 2026-10-19
 
 ### Changed

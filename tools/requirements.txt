@@ -6,4 +6,4 @@ numpy==2.5.3
 qrcode==8.2
 # Shared Zepp tooling (DEV variants, previews, releases, packages, QR codes, the emulator): one
 # pin, used by CI and sessions alike (docs/development.md -> "Layout").
-zepp-devkit @ git+https://github.com/raetha/zepp-devkit@v0.2.0
+zepp-devkit @ git+https://github.com/raetha/zepp-devkit@5c9bb47063e3a49b8199f9f56077b6a05c4ea942  # dev, until 0.3.0 is released
